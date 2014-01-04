@@ -46,9 +46,14 @@ public :
 		Nu_Tau.insert(pair<double, double> (_log_x, _Nu_Tau)) ;
 	}
 	
+	void set_f_gamma(double _f_gamma) { f_gamma = _f_gamma ;}
+	void set_n_gamma(double _n_gamma) { n_gamma = _n_gamma ;}
+	
 	
 private :
 	double mass;
+	double f_gamma ;
+	double n_gamma ;
 	vector<double> log_x ;
 	map<double, double>  Nu_e;
 	map<double, double>  Nu_Mu;
