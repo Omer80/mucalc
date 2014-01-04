@@ -42,6 +42,11 @@ public  :
 		os << "buf is " << buf << endl ;
 	}
 	
+	void print_data_for_wimp_mass(int _mass) {
+		_wimp[_mass]->print_line_by_line() ;
+	}
+	
+	
 	
 	
 
@@ -52,7 +57,8 @@ private :
 	string buf ;
 	vector<string> def;
 	vector<WimpData> _mDM ;
-	map<double, WimpData*> _wimp ;
+	map<int, WimpData*> _wimp ;
+	int _mass ;
 	
 	void init() {
 		if (_file.fail()) { 
@@ -61,7 +67,10 @@ private :
 		} else {
 			cout << "File was opened" << endl ;
 			read_first_line() ;
-			read_data() ;
+			//_file >> _mass ;
+			//read_mass() ;
+			//read_mass() ;
+			read_data();
 		}	
 	}
 	
@@ -73,44 +82,56 @@ private :
 			def.push_back(buf) ;
 			cout << def[i] << " ";
 		}
+		cout << endl << "So far for definitions." << endl ;
 	}
 	
 	void read_data () {
+		cout << "Starting reading data from file" ;
 		int j = 0 ;
+		_file >> _mass ;
 		//for (int j = 0 ; j < 10 ; j++)
-		while(!_file.eof()) {
+		while(!_file.fail()) {
 			if (_file.eof()) break ;
-			
 			// Loop over the same masses and enter the values to the same WimpData object till the mass 
 			// changes
 			read_mass() ;
 			
 			j++;
-			//cout << "For mass " << _mass << endl ;
-			//cout << setw(10) << def[1] << setw(10) << def[24] << setw(10) << def[25] << setw(10) <<def[26] << endl ;
-			//cout << setw(10) << value[1] << setw(10) <<value[24] << setw(10) <<value[25] << setw(10) <<value[26] << endl ;			
+			
 		}
+		cout << endl << "Finished reading data from file" << endl ;
 		
 	}
 	
 	void read_mass() {
+		cout << "." ;
 		vector<double> value(29);
 		double _value ;
-		double _mass ;
-		double _next_mass ;
-		_file >> _mass ;
+		
+		int _next_mass ;
+		
 		WimpData* mDM = new WimpData(_mass) ;
 		_next_mass = _mass ;
+		//cout << "Reading data for mass " << _mass << endl;
+		int j=0;
 		do {
-			if (_file.eof()) break ;
 			for (int i=0 ; i < 29 ; i++) {
 				_file >> _value ;
+				j++;
 				value[i]=_value;
+				//cout << value[i] << " ";
 			}
-			mDM->add_line(value[1] ,value[24],value[25],value[26]);
+			//cout << endl ;
+			mDM->add_line(value[0] ,value[23],value[24],value[25]);
+			if (_file.eof()) break ;
 			_file >> _next_mass ;
+			if (_file.fail()) break ;
+			//cout << "Next mass is " << _next_mass << endl ;
+			j++;
 		} while (_next_mass == _mass) ;
-		_wimp.insert(pair<double, WimpData*>(_mass, mDM));
+		_wimp.insert(pair<int, WimpData*>(_mass, mDM));
+		//cout << "Finished reading data for mass " << _mass << endl ;
+		_mass = _next_mass ;
 		
 	}
 	

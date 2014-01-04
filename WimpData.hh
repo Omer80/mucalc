@@ -6,6 +6,7 @@
 #include <map>
 #include <iterator>
 #include <vector>
+#include <iomanip>
 
 using namespace std ;
 
@@ -32,10 +33,11 @@ public :
 	void print_line_by_line() {
 		vector<double>::iterator iter ;
 		iter = log_x.begin() ;
-		//while (iter != log_x.end()) {
-			cout << *iter << " " << Nu_e_for_x(*iter) << " " ;
-			cout << Nu_Mu_for_x(*iter) << " " << Nu_Tau_for_x(*iter) << endl ;
-		//}
+		while (iter != log_x.end()) {
+			cout << setw(5)<< *iter << setw(10) << Nu_e_for_x(*iter)  
+			<< setw(10) << Nu_Mu_for_x(*iter) << setw(10) << Nu_Tau_for_x(*iter) << endl ;
+			iter++;
+		}
 	}
 	
 	// Modifiers
@@ -48,6 +50,8 @@ public :
 	
 	void set_f_gamma(double _f_gamma) { f_gamma = _f_gamma ;}
 	void set_n_gamma(double _n_gamma) { n_gamma = _n_gamma ;}
+	
+	
 	
 	
 private :

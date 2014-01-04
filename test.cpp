@@ -8,6 +8,7 @@ using namespace std ;
 
 int main () {
 	try {DmDataReader r("data/AtProduction_neutrinos_e.dat") ;
+	r.print_data_for_wimp_mass(5);
 	}
 	catch (ReaderException cre) { 
 		cout << cre << endl ; 
