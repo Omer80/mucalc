@@ -46,6 +46,11 @@ public  :
 		_wimp[_mass]->print_line_by_line() ;
 	}
 	
+	void print_f_gamma_partial_for_wimp_mass(int _mass) {
+		_wimp[_mass]->set_f_gamma_partial() ;
+		_wimp[_mass]->print_f_gamma_partial() ;
+	}
+	
 	
 	
 	
