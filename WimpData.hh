@@ -64,7 +64,7 @@ public :
 		vector<double>::iterator iter ;
 		iter = log_x.begin() ;
 		double energy_fraction = 0 ;
-		while (iter+1 != log_x.end()) {
+		while (iter != log_x.end()-1) {
 			energy_fraction +=  ((((*iter)*(Nu_e_for_x(*iter)))+((*iter+1)*(Nu_e_for_x(*iter+1))))/2.0)*(0.05) ;
 			energy_fraction +=  ((((*iter)*(Nu_Mu_for_x(*iter)))+((*iter+1)*(Nu_Mu_for_x(*iter+1))))/2.0)*(0.05) ;
 			energy_fraction +=  ((((*iter)*(Nu_Tau_for_x(*iter)))+((*iter+1)*(Nu_Tau_for_x(*iter+1))))/2.0)*(0.05) ;
