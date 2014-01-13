@@ -1,25 +1,35 @@
 import numpy as np
-import scipy
+import scipy.integrate
 from math import *
 
 class Wimp(object):
 	def __init__(self, mass, definitions):
 		self.mass = mass
+		self.log_x = []
 		self.dN_dx = {}
+		self.definitions = definitions
 		self.num_columns = len(definitions)
 		self.int_x_dN_dx = {}
-		for definition in definitions:
-			self.dN_dx[definition] = []
-			self.int_x_dN_dx[definition] = []
-			#print definition, "added"
-		print "Wimp of mass", self.mass, "is added"
-			
-	def integration_of_columns():
-		print "Integration of columns"
 		for j in range(2, self.num_columns):
-			print self.dN_dx[definitions[j]]
-		
-		
+			self.dN_dx[definitions[j]] = []
+			self.int_x_dN_dx[definitions[j]] = []
+			#print definition, "added"
+		#print "Wimp of mass", self.mass, "is added"
+			
+	def integration_of_columns(self):
+		#print "Integration of columns"
+		for j in range(2, self.num_columns):
+			# Creating an array of the sample for integration \int E * dN/dx
+			sampling_integrand = []
+			for i in range(len(self.log_x)):
+				sampling_integrand.append((10**(self.log_x[i]))*self.dN_dx[self.definitions[j]][i])
+			# Integrating using scipy.integrate.simps
+			integration_result = scipy.integrate.simps(sampling_integrand, self.log_x)
+			#print "Integration results", integration_result
+			# Storing the value of integration in the dictionary created int_x_dN_dx
+			self.int_x_dN_dx[self.definitions[j]].append(integration_result)
+			
+					
 		
 wimp_data = {}
 
@@ -34,7 +44,7 @@ def read_data():
 	definitions = definitions.readline()
 	definitions = definitions.split()
 	
-	print definitions
+	#print definitions
 
 	nu_e = np.loadtxt("data/AtProduction_neutrinos_e.dat", skiprows=1 , unpack=True)
 	#nu_mu = np.loadtxt("data/AtProduction_neutrinos_mu.dat", skiprows=1 , unpack=True)
@@ -51,13 +61,15 @@ def read_data():
 			#Saving the columns into arrays
 			if mass not in wimp_data:
 				wimp_data[mass] = Wimp(mass, definitions)
-			for j in range(1, len(definitions)):
+			wimp_data[mass].log_x.append(float(nu_e[1][i]))
+			for j in range(2, len(definitions)):
 				wimp_data[mass].dN_dx[definitions[j]].append(float(nu_e[j][i]))
 				#print nu_e[j][i]
 			#print mass, "Same mass", nu_e_mass[i+1]
 			i = i+1
 		else:
-			for j in range(1, len(definitions)):
+			wimp_data[mass].log_x.append(float(nu_e[1][i]))
+			for j in range(2, len(definitions)):
 				wimp_data[mass].dN_dx[definitions[j]].append(float(nu_e[j][i]))
 			#Integrating the columns and storing into Wimp class
 			wimp_data[mass].integration_of_columns()					
@@ -76,7 +88,7 @@ def read_data():
 	
 	
 read_data()
-#print wimp_data[6].dN_dx['Log[10,x]']
+#print wimp_data[6].dN_dx['e']
 #print len(wimp_data[6].dN_dx['Log[10,x]'])
 #print len(wimp_data[6].dN_dx['e'])
 	
