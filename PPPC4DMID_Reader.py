@@ -1,5 +1,8 @@
 import numpy as np
 import scipy.integrate
+from scipy.interpolate import interp1d
+
+
 from math import *
 
 class Wimp(object):
@@ -57,35 +60,63 @@ class ReadPPPC4DMID_data(object):
 		
 		data_table = np.loadtxt(filename, skiprows=1 , unpack=True)
 		
-		mass_array = data_table[0]
-		#nu_e_logx = nu_e[1]
+		self.mass_array = data_table[0]
 		
 		
 		i=0
 		print "Starting reading file", filename
-		for mass in mass_array:
-			if (i <(len(mass_array)-1)) and (mass == mass_array[i+1]) :
+		for mass in self.mass_array:
+			if (i <(len(self.mass_array)-1)) and (mass == self.mass_array[i+1]) :
 				#Saving the columns into arrays
 				if mass not in self.wimp_data:
 					self.wimp_data[mass] = Wimp(mass, self.definitions)
 				self.wimp_data[mass].log_x.append(float(data_table[1][i]))
-				for j in range(2, len(definitions)):
-					self.wimp_data[mass].dN_dx[definitions[j]].append(float(data_table[j][i]))
+				for j in range(2, len(self.definitions)):
+					self.wimp_data[mass].dN_dx[self.definitions[j]].append(float(data_table[j][i]))
 					#print nu_e[j][i]
-				#print mass, "Same mass", mass_array[i+1]
+				#print mass, "Same mass", self.mass_array[i+1]
 				i = i+1
 			else:
 				self.wimp_data[mass].log_x.append(float(data_table[1][i]))
-				for j in range(2, len(definitions)):
-					self.wimp_data[mass].dN_dx[definitions[j]].append(float(data_table[j][i]))
+				for j in range(2, len(self.definitions)):
+					self.wimp_data[mass].dN_dx[self.definitions[j]].append(float(data_table[j][i]))
 				#Integrating the columns and storing into Wimp class
 				self.wimp_data[mass].integration_of_columns()					
-				if i==(len(mass_array)-1):
+				if i==(len(self.mass_array)-1):
 					print "End of file", filename
 				else:
 					#print mass, "Skipping to next mass"
 					i = i+1
-			
+		
+		# Arranging the integrated values of the columns into arrays
+		self.filtered_mass_array = []
+		self.integrated_columns_values = {}
+		for j in range(2, len(self.definitions)):
+			self.integrated_columns_values[self.definitions[j]] = []
+		for mass in self.mass_array:
+			if mass not in self.filtered_mass_array:
+				#print "Mass is not in filtered then.."
+				self.filtered_mass_array.append(mass)
+				for j in range(2, len(self.definitions)):
+					#print "adding", self.definitions[j]
+					value = self.wimp_data[mass].int_x_dN_dx[self.definitions[j]]
+					#print mass, value
+					self.integrated_columns_values[self.definitions[j]].append(value)
+			else:
+				#print "Mass is already in filtered"
+				pass
+		
+		#print "len(filtered_mass)", len(self.filtered_mass_array) , "len(integrated_column)", len(self.integrated_columns_values['e'])
+		
+	def interp_integrated_column(self, definition):
+		'''  (string) -> interpolated_function(mass)
+		This functions output the interpolated value of the integrated columns
+		as function of the mass of the WIMP (mDM)
+		'''
+		print "len(filtered_mass)", len(self.filtered_mass_array) , "len(integrated_column)", len(self.integrated_columns_values[definition])
+
+		interpolated_values = interp1d(self.filtered_mass_array, self.integrated_columns_values[definition])
+		return interpolated_values
 	
 		
 	
