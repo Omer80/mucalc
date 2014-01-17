@@ -29,12 +29,14 @@ class Wimp(object):
 				sampling_integrand.append(self.mass*(10**(self.log_x[i]))*self.dN_dx[self.definitions[j]][i])
 			# Integrating using scipy.integrate.simps
 			integration_result = scipy.integrate.simps(sampling_integrand, self.log_x)
-			sum_integrations = sum_integrations + integration_result
+			#for char in self.definitions[j]:
+				#if char in 'LRT':
+					#sum_integrations = sum_integrations + integration_result
 			#print "Integration results", integration_result
 			# Storing the value of integration in the dictionary created int_x_dN_dx
 			self.int_x_dN_dx[self.definitions[j]].append(integration_result)
 			#print "The integration of column", self.definitions[j], "is", integration_result
-		difference = (2 * self.mass) - sum_integrations
+		#difference = (2 * self.mass) - sum_integrations
 		#print "For mDM ", self.mass, "the sum of the integration of columns is", sum_integrations
 		#print "2* mDM - (sum of integrated columns) = ", difference
 			
@@ -113,9 +115,14 @@ class ReadPPPC4DMID_data(object):
 		This functions output the interpolated value of the integrated columns
 		as function of the mass of the WIMP (mDM)
 		'''
-		print "len(filtered_mass)", len(self.filtered_mass_array) , "len(integrated_column)", len(self.integrated_columns_values[definition])
-
-		interpolated_values = interp1d(self.filtered_mass_array, self.integrated_columns_values[definition])
+		#print self.filtered_mass_array
+		#print "len(filtered_mass)", len(self.filtered_mass_array) , "len(integrated_column)", len(self.integrated_columns_values[definition])
+		#print self.integrated_columns_values[definition]
+		x = np.asarray(self.filtered_mass_array)
+		y = np.asarray(self.integrated_columns_values[definition]).squeeze()
+		for i in range(len(x)):
+			print x[i], y[i]
+		interpolated_values = interp1d(x,y)
 		return interpolated_values
 	
 		
