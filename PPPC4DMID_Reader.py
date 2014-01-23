@@ -120,8 +120,8 @@ class ReadPPPC4DMID_data(object):
 		#print self.integrated_columns_values[definition]
 		x = np.asarray(self.filtered_mass_array)
 		y = np.asarray(self.integrated_columns_values[definition]).squeeze()
-		for i in range(len(x)):
-			print x[i], y[i]
+		#for i in range(len(x)):
+			#print x[i], y[i]
 		interpolated_values = interp1d(x,y)
 		return interpolated_values
 	
