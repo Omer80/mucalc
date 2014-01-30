@@ -2,10 +2,10 @@ import numpy as np
 import scipy.integrate
 from scipy.interpolate import interp1d
 
-
 from math import *
 
-class Wimp(object):
+
+class Wimp_info_PPPC_file(object):
 	def __init__(self, mass, definitions):
 		self.mass = mass
 		self.log_x = []
@@ -39,8 +39,6 @@ class Wimp(object):
 		#difference = (2 * self.mass) - sum_integrations
 		#print "For mDM ", self.mass, "the sum of the integration of columns is", sum_integrations
 		#print "2* mDM - (sum of integrated columns) = ", difference
-			
-					
 		
 
 class ReadPPPC4DMID_data(object):
@@ -71,7 +69,7 @@ class ReadPPPC4DMID_data(object):
 			if (i <(len(self.mass_array)-1)) and (mass == self.mass_array[i+1]) :
 				#Saving the columns into arrays
 				if mass not in self.wimp_data:
-					self.wimp_data[mass] = Wimp(mass, self.definitions)
+					self.wimp_data[mass] = Wimp_info_PPPC_file(mass, self.definitions)
 				self.wimp_data[mass].log_x.append(float(data_table[1][i]))
 				for j in range(2, len(self.definitions)):
 					self.wimp_data[mass].dN_dx[self.definitions[j]].append(float(data_table[j][i]))

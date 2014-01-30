@@ -13,24 +13,36 @@ final_SM_gammas = pppc.ReadPPPC4DMID_data("data/AtProduction_gammas.dat")
 final_SM_antiprotons = pppc.ReadPPPC4DMID_data("data/AtProduction_antiprotons.dat")
 final_SM_antideuterons = pppc.ReadPPPC4DMID_data("data/AtProduction_antideuterons.dat")
 
-nu_e_int = final_SM_nu_e.interp_integrated_column('b')
-nu_mu_int = final_SM_nu_mu.interp_integrated_column('b')
-nu_tau_int = final_SM_nu_tau.interp_integrated_column('b')
-positrons_int = final_SM_positrons.interp_integrated_column('b')
-gammas_int = final_SM_gammas.interp_integrated_column('b')
-antiprotons_int = final_SM_antiprotons.interp_integrated_column('b')
-antideuterons_int = final_SM_antideuterons.interp_integrated_column('b')
+#nu_e_int = final_SM_nu_e.interp_integrated_column('eL')
+#nu_mu_int = final_SM_nu_mu.interp_integrated_column('eL')
+#nu_tau_int = final_SM_nu_tau.interp_integrated_column('eL')
+#positrons_int = final_SM_positrons.interp_integrated_column('eL')
+#gammas_int = final_SM_gammas.interp_integrated_column('eL')
+#antiprotons_int = final_SM_antiprotons.interp_integrated_column('eL')
+#antideuterons_int = final_SM_antideuterons.interp_integrated_column('eL')
 
 
-total_energy_for_b_channel = nu_e_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + nu_mu_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + nu_tau_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + positrons_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + gammas_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + antiprotons_int(50)
-total_energy_for_b_channel = total_energy_for_b_channel + antideuterons_int(50)
+#total_energy_for_b_channel = nu_e_int(200)
+#print nu_e_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + nu_mu_int(200)
+#print nu_mu_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + nu_tau_int(200)
+#print nu_tau_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + positrons_int(200)
+#print positrons_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + gammas_int(200)
+#print gammas_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + antiprotons_int(200)
+#print antiprotons_int(200)
+#total_energy_for_b_channel = total_energy_for_b_channel + antideuterons_int(200)
+#print antideuterons_int(200)
 
-print "Total energy for mDM 50 is", total_energy_for_b_channel
+#gamma_plus_e = gammas_int(200) + positrons_int(200)
+
+
+
+#print "Total energy for mDM 200 is", total_energy_for_b_channel
+#print "The ratio is",gamma_plus_e / total_energy_for_b_channel
 
 
 		
