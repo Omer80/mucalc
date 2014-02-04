@@ -1,6 +1,6 @@
 """
 Omer Tzuk, February 2014
-Version 0.4
+Version 0.5
 This script imports data from PPPC 4 DM ID files and reproduce
 Figure 4 from 1012.4515v4
 """
@@ -85,37 +85,38 @@ def plot_channel(channel,percentages, mass, save_figures):
 	right = left + width
 	top = bottom + height
 	
+	channel = ''.join(i for i in channel if i in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+	nu_energy , d_plus_p_energy, e_energy, gamma_energy  = percentages  
 	
-		
-	nu_energy , d_plus_p_energy, e_energy, gamma_energy  = percentages	
-		
 	# The slices will be ordered and plotted counter-clockwise.
-	labels = [r'$E_{\nu} / E_{tot}$ = %.3f'%nu_energy, 
-	          r'$E_{d+p} / E_{tot}$ = %.3f'%d_plus_p_energy,
-	          r'$E_{e} / E_{tot}$ = %.3f'%e_energy,
-	          r'$E_{\gamma} / E_{tot}$ = %.3f'%gamma_energy]
+	labels = [r'$E_{\nu} / E_{tot}$ '  ,
+	          r'$E_{d+p} / E_{tot}$ ' ,
+	          r'$E_{e} / E_{tot}$ ' ,
+	          r'$E_{\gamma} / E_{tot}$']
 	sizes = [nu_energy , d_plus_p_energy, e_energy, gamma_energy]
+	labels_a = [r'${\nu}$',r'${d+p}$',r'${e}$',r'${\gamma}$']
 	colors = ['gold','red','green', 'lightskyblue']
 	explode = (0.1, 0,0,0)
-	patches, texts = plt.pie(sizes, colors=colors)#, startangle=90) ** not working for some reason
-	plt.legend(patches, labels, loc = "best")
+	patches, texts = plt.pie(sizes, explode = explode, colors=colors) 
+	plt.legend(patches, labels, loc = "best" )
 	E_gamma_e = e_energy + gamma_energy
-	plt.text(right, bottom, 
-	         r'$E_{\gamma + e} / E_{tot}$ = %.3f'%E_gamma_e,
-	         horizontalalignment='left',
-	         verticalalignment='bottom',
-	         bbox=dict(facecolor='white', alpha=0.5))	
 	#plt.pie(sizes, explode=explode, labels=labels, colors=colors,
 	        #autopct='%1.1f%%', shadow=True)
 	# Set aspect ratio to be equal so that pie is drawn as a circle.
 	plt.axis('equal')
-	plt.suptitle(r'DM DM $\rightarrow$ %s + %s'%(channel,channel),position=(left,top),
-	             bbox=dict(facecolor='0.8',), fontsize=30)
+	plt.title(r'DM DM $\rightarrow$ $%s$ + $%s$'%(channel,channel),position=(0.5,1),bbox=dict(facecolor='0.8',), fontsize=30)
+	plt.text(-0.4,-0.76, r'$E_{\gamma + e} / E_{tot}$ = %.3f'%(E_gamma_e)
+	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25) 
+	plt.text(-0.4,-0.98, r'$E_{p + d} / E_{\gamma + e}$ = %.3f'%(d_plus_p_energy/E_gamma_e)
+	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25)  
+	          
 	plt.tight_layout()
+	
 	if save_figures:
 		plt.savefig("./figures/energy_distribution_for_channel_"+channel+".png")
 	else:
 		plt.show()
+	plt.close()
 
 
 
@@ -137,7 +138,7 @@ if __name__ == "__main__":
 		with open("data/AtProduction_neutrinos_e.dat",'r') as definitions:
 			definitions = definitions.readline()
 			definitions = definitions.split()
-		channels = definitions[2:-1]
+		channels = definitions[2:]
 	else:
 		channels = ['eL']
 	
