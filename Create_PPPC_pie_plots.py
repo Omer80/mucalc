@@ -64,13 +64,13 @@ def calculate_percentages_per_channel(mass, channels):
 		total_energy_for_channel = total_energy_for_channel + antiprotons_int_for_mass
 		antideuterons_int_for_mass = antideuterons_int(mass)
 		total_energy_for_channel = total_energy_for_channel + antideuterons_int_for_mass
+		print "Total energy for channel ", channel, "is", total_energy_for_channel
+		nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)/ (mass)
+		d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)/ (mass)
+		gamma_energy = gammas_int_for_mass/ (mass)
+		e_energy = positrons_int_for_mass / (mass)
 		
-		nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)/ total_energy_for_channel
-		d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)/ total_energy_for_channel
-		gamma_energy = gammas_int_for_mass/ total_energy_for_channel
-		e_energy = positrons_int_for_mass / total_energy_for_channel
-		
-		
+		print [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
 		channels_dict[channel] = [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
 		
 	return channels_dict
