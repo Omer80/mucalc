@@ -1,6 +1,6 @@
 """
 Omer Tzuk, February 2014
-Version 0.5
+Version 0.6
 This script imports data from PPPC 4 DM ID files and reproduce
 Figure 4 from 1012.4515v4
 """
@@ -16,7 +16,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-def main(channels = ['eL'], mass = 200, save_figures = False):
+def main(channels = ['eL'], mass = 200, save_figures = False, detailed_plots = False):
 	
 	print "Producing plots for channels:",channels
 	print "For mass - ",mass
@@ -26,7 +26,7 @@ def main(channels = ['eL'], mass = 200, save_figures = False):
 	#print channels
 	
 	for channel in channels:
-		plot_channel(channel,channels[channel], mass, save_figures)
+		plot_channel(channel,channels[channel], mass, save_figures,detailed_plots)
 
 
 def calculate_percentages_per_channel(mass, channels):	
@@ -56,7 +56,7 @@ def calculate_percentages_per_channel(mass, channels):
 		total_energy_for_channel = total_energy_for_channel + nu_mu_int_for_mass
 		nu_tau_int_for_mass = nu_tau_int(mass)
 		total_energy_for_channel = total_energy_for_channel + nu_tau_int_for_mass
-		positrons_int_for_mass = positrons_int(mass)
+		positrons_int_for_mass = 2 * positrons_int(mass)
 		total_energy_for_channel = total_energy_for_channel + positrons_int_for_mass
 		gammas_int_for_mass = gammas_int(mass)
 		total_energy_for_channel = total_energy_for_channel + gammas_int_for_mass
@@ -65,12 +65,14 @@ def calculate_percentages_per_channel(mass, channels):
 		antideuterons_int_for_mass = antideuterons_int(mass)
 		total_energy_for_channel = total_energy_for_channel + antideuterons_int_for_mass
 		
+		print "Total energy for channel", channel, "is", total_energy_for_channel
+		
 		nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)/ total_energy_for_channel
 		d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)/ total_energy_for_channel
 		gamma_energy = gammas_int_for_mass/ total_energy_for_channel
 		e_energy = positrons_int_for_mass / total_energy_for_channel
 		
-		
+		print [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
 		channels_dict[channel] = [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
 		
 	return channels_dict
@@ -78,7 +80,7 @@ def calculate_percentages_per_channel(mass, channels):
 			
 			
 
-def plot_channel(channel,percentages, mass, save_figures):
+def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	# build a rectangle in axes coords
 	left, width = .25, .5
 	bottom, height = .25, .5
@@ -89,10 +91,17 @@ def plot_channel(channel,percentages, mass, save_figures):
 	nu_energy , d_plus_p_energy, e_energy, gamma_energy  = percentages  
 	
 	# The slices will be ordered and plotted counter-clockwise.
-	labels = [r'$E_{\nu} / E_{tot}$ '  ,
-	          r'$E_{d+p} / E_{tot}$ ' ,
-	          r'$E_{e} / E_{tot}$ ' ,
-	          r'$E_{\gamma} / E_{tot}$']
+	if detailed_plots == False:
+		labels = [r'$E_{\nu} / E_{tot}$ '  ,
+	              r'$E_{d+p} / E_{tot}$ ' ,
+	              r'$E_{e} / E_{tot}$ ' ,
+	              r'$E_{\gamma} / E_{tot}$']
+	else:
+		labels = [r'$E_{\nu} / E_{tot}$ = '+str(nu_energy) ,
+	              r'$E_{d+p} / E_{tot}$ = '+str(d_plus_p_energy),
+	              r'$E_{e} / E_{tot}$ = '+str(e_energy),
+	              r'$E_{\gamma} / E_{tot}$ = '+str(gamma_energy)]		
+		
 	sizes = [nu_energy , d_plus_p_energy, e_energy, gamma_energy]
 	labels_a = [r'${\nu}$',r'${d+p}$',r'${e}$',r'${\gamma}$']
 	colors = ['gold','red','green', 'lightskyblue']
@@ -122,10 +131,12 @@ def plot_channel(channel,percentages, mass, save_figures):
 
 # Parser setup
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('-c','--channel', dest='accumulate',
+parser.add_argument('-c','--channels', nargs='+',
                    help='Choose specific channel for plotting')
                    
 parser.add_argument('-a','--all_channels', help="Producing pie charts for all channels",
+					action='store_true')
+parser.add_argument('-d','--detailed_plots', help="Producing pie charts",
 					action='store_true')
 parser.add_argument('-s','--save_figures', help="Saves the pie charts to files",
 					action='store_true')
@@ -140,10 +151,13 @@ if __name__ == "__main__":
 			definitions = definitions.split()
 		channels = definitions[2:]
 	else:
-		channels = ['eL']
+		if args.channels:
+			channels = args.channels
+		else:
+			channels = ['eL']
 	
 	if args.mass != None:
 		mass = int(args.mass)
 	else:
 		mass = 200	
-	main(channels, mass, args.save_figures)
+	main(channels, mass, args.save_figures, args.detailed_plots)
