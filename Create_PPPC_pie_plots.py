@@ -1,6 +1,6 @@
 """
 Omer Tzuk, February 2014
-Version 0.6
+Version 0.6a
 This script imports data from PPPC 4 DM ID files and reproduce
 Figure 4 from 1012.4515v4
 """
@@ -67,13 +67,13 @@ def calculate_percentages_per_channel(mass, channels):
 		
 		print "Total energy for channel", channel, "is", total_energy_for_channel
 		
-		nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)/ total_energy_for_channel
-		d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)/ total_energy_for_channel
-		gamma_energy = gammas_int_for_mass/ total_energy_for_channel
-		e_energy = positrons_int_for_mass / total_energy_for_channel
+		nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)
+		d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)
+		gamma_energy = gammas_int_for_mass
+		e_energy = positrons_int_for_mass
 		
 		print [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
-		channels_dict[channel] = [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
+		channels_dict[channel] = [nu_energy , d_plus_p_energy, e_energy , gamma_energy, total_energy_for_channel]
 		
 	return channels_dict
 		
@@ -88,7 +88,7 @@ def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	top = bottom + height
 	
 	channel = ''.join(i for i in channel if i in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-	nu_energy , d_plus_p_energy, e_energy, gamma_energy  = percentages  
+	nu_energy , d_plus_p_energy, e_energy, gamma_energy , total_energy = percentages 
 	
 	# The slices will be ordered and plotted counter-clockwise.
 	if detailed_plots == False:
@@ -97,12 +97,13 @@ def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	              r'$E_{e} / E_{tot}$ ' ,
 	              r'$E_{\gamma} / E_{tot}$']
 	else:
-		labels = [r'$E_{\nu} / E_{tot}$ = '+str(nu_energy) ,
-	              r'$E_{d+p} / E_{tot}$ = '+str(d_plus_p_energy),
-	              r'$E_{e} / E_{tot}$ = '+str(e_energy),
-	              r'$E_{\gamma} / E_{tot}$ = '+str(gamma_energy)]		
+		labels = [r'$E_{\nu} / E_{tot}$ = '+str(nu_energy/total_energy) ,
+	              r'$E_{d+p} / E_{tot}$ = '+str(d_plus_p_energy/total_energy),
+	              r'$E_{e} / E_{tot}$ = '+str(e_energy/total_energy),
+	              r'$E_{\gamma} / E_{tot}$ = '+str(gamma_energy/total_energy)]		
 		
-	sizes = [nu_energy , d_plus_p_energy, e_energy, gamma_energy]
+	sizes = [nu_energy/total_energy , d_plus_p_energy/total_energy
+	         , e_energy/total_energy, gamma_energy/total_energy]
 	labels_a = [r'${\nu}$',r'${d+p}$',r'${e}$',r'${\gamma}$']
 	colors = ['gold','red','green', 'lightskyblue']
 	explode = (0.1, 0,0,0)
@@ -114,13 +115,17 @@ def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	# Set aspect ratio to be equal so that pie is drawn as a circle.
 	plt.axis('equal')
 	plt.title(r'DM DM $\rightarrow$ $%s$ + $%s$'%(channel,channel),position=(0.5,1),bbox=dict(facecolor='0.8',), fontsize=30)
-	plt.text(-0.4,-0.76, r'$E_{\gamma + e} / E_{tot}$ = %.3f'%(E_gamma_e)
+	plt.text(-0.4,-0.76, r'$E_{\gamma + e} / E_{tot}$ = %.3f'%(E_gamma_e/total_energy)
 	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25) 
 	plt.text(-0.4,-0.98, r'$E_{p + d} / E_{\gamma + e}$ = %.3f'%(d_plus_p_energy/E_gamma_e)
 	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25)  
 	          
-	plt.tight_layout()
 	
+	
+	if detailed_plots:
+		plt.text(-0.4,-0.54, r'$E_{tot}$ = %.3f'%(total_energy)
+	             , bbox=dict(facecolor='white', alpha=0.5), fontsize=25)
+	plt.tight_layout()	
 	if save_figures:
 		plt.savefig("./figures/energy_distribution_for_channel_"+channel+".png")
 	else:
