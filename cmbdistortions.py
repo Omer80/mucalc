@@ -84,6 +84,7 @@ class Wimp(object):
 		self.compton_y_parameter = 1
 		self.z_annihilation = 10e5
 		self.sigma_v = const.sigma_v
+		self.CMBdistortion = CmbDistortion() # Need to think what I should pass  to calculation
 		
 	def ndm_z(self, z):
 		"""
@@ -117,11 +118,10 @@ class CmbDistortion(object):
 	of distortion that a certain WIMP particle will produce at the frequency spectrum of the CMB
 	in the early universe (redshift 10^6 > z > 10^4)
 	"""
-	def __init__(self, wimp):
-		self.wimp = wimp
+	def __init__(self):
 		# In order to decide whether the distortion is y-type or mu-type
 		# The Compton y parameter should be calculated (eq. 2.5 in 1203.2601)
-		self.calculate_compton_y_parameter()
+		self.calculate_compton_y_parameter(10**5)
 		if self.compton_y_parameter > 1:
 			self.calculate_mu_distortion()
 		elif self.compton_y_parameter <= 1 and self.compton_y_parameter >= 0.01:
@@ -129,7 +129,12 @@ class CmbDistortion(object):
 		else:
 			pass
 		
-	def calculate_compton_y_parameter(self):
+	def calculate_compton_y_parameter(self, z):
+		"""
+		Calculation of Compton y parameter based on Eq. 2.5 in 1203.2601
+		"""
+		H_z = cosmology.H(z).to(1/u.s)
+		integrand = lambda z : (const.kb*const.Sigma_T)/(const.me*const.c) *((n_e * TCMB_z)/(H_z * (1+z)))
 		self.compton_y_parameter = 0.5
 		
 	def calculate_mu_distortion(self):

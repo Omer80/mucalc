@@ -21,10 +21,11 @@ def main(channels = ['eL'], mass = 200, save_figures = False, detailed_plots = F
 	print "Producing plots for channels:",channels
 	print "For mass - ",mass
 	
-	
+	# Plug in a list of channels for calculation, returns a dictionary with the channel name as key
+	# to a list of the values : nu_energy , d_plus_p_energy, e_energy , gamma_energy, total_energy_for_channel
 	channels = calculate_percentages_per_channel(mass, channels)
-	#print channels
 	
+	#print channels
 	for channel in channels:
 		plot_channel(channel,channels[channel], mass, save_figures,detailed_plots)
 
@@ -50,19 +51,19 @@ def calculate_percentages_per_channel(mass, channels):
 		antiprotons_int = final_SM_antiprotons.interp_integrated_column(channel)
 		antideuterons_int = final_SM_antideuterons.interp_integrated_column(channel)
 		
-		nu_e_int_for_mass = nu_e_int(mass)
+		nu_e_int_for_mass = float(2 * nu_e_int(mass))
 		total_energy_for_channel = nu_e_int_for_mass
-		nu_mu_int_for_mass = nu_mu_int(mass)
+		nu_mu_int_for_mass = float(2 * nu_mu_int(mass))
 		total_energy_for_channel = total_energy_for_channel + nu_mu_int_for_mass
-		nu_tau_int_for_mass = nu_tau_int(mass)
+		nu_tau_int_for_mass = float(2 * nu_tau_int(mass))
 		total_energy_for_channel = total_energy_for_channel + nu_tau_int_for_mass
-		positrons_int_for_mass = 2 * positrons_int(mass)
+		positrons_int_for_mass = float(2 * positrons_int(mass))
 		total_energy_for_channel = total_energy_for_channel + positrons_int_for_mass
-		gammas_int_for_mass = gammas_int(mass)
+		gammas_int_for_mass = float(gammas_int(mass))
 		total_energy_for_channel = total_energy_for_channel + gammas_int_for_mass
-		antiprotons_int_for_mass = antiprotons_int(mass)
+		antiprotons_int_for_mass = float(2 * antiprotons_int(mass))
 		total_energy_for_channel = total_energy_for_channel + antiprotons_int_for_mass
-		antideuterons_int_for_mass = antideuterons_int(mass)
+		antideuterons_int_for_mass = float(2 * antideuterons_int(mass))
 		total_energy_for_channel = total_energy_for_channel + antideuterons_int_for_mass
 		
 		print "Total energy for channel", channel, "is", total_energy_for_channel
@@ -147,22 +148,32 @@ parser.add_argument('-s','--save_figures', help="Saves the pie charts to files",
 					action='store_true')
 parser.add_argument('-m','--mass', help="Specifing the mass for the calculations",
 					 action='count', default = 200)
+parser.add_argument('-p','--print_possible_channels', help="Prints all possible channels for calculation, exit",
+					action='store_true')
 
 args = parser.parse_args()	
 if __name__ == "__main__":
-	if args.all_channels:
+	if args.print_possible_channels:
 		with open("data/AtProduction_neutrinos_e.dat",'r') as definitions:
 			definitions = definitions.readline()
 			definitions = definitions.split()
-		channels = definitions[2:]
-	else:
-		if args.channels:
-			channels = args.channels
+			print definitions
+			
+	else:	
+		if args.all_channels:
+			with open("data/AtProduction_neutrinos_e.dat",'r') as definitions:
+				definitions = definitions.readline()
+				definitions = definitions.split()
+			channels = definitions[2:]
 		else:
-			channels = ['eL']
+			if args.channels:
+				channels = args.channels
+			else:
+				channels = ['eL']
+		
+		if args.mass != None:
+			mass = int(args.mass)
+		else:
+			mass = 200	
+		main(channels, mass, args.save_figures, args.detailed_plots)
 	
-	if args.mass != None:
-		mass = int(args.mass)
-	else:
-		mass = 200	
-	main(channels, mass, args.save_figures, args.detailed_plots)
