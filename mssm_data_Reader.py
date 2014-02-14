@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.integrate
 from scipy.interpolate import interp1d
+import PPPC4DMID_Reader as pppc
+
 
 
 class Read_pp_log_mssm_data(object):
@@ -48,3 +50,6 @@ class Read_pp_log_mssm_data(object):
 			#print key, self.columns_defs[key]
 			self.data[self.columns_defs[key]] = table[key-1]
 		
+if __name__ == "__main__":
+	data = Read_pp_log_mssm_data("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR")
+	print data.data["<\sigma v> (Z0 Z0) (cm^3 s^{-1})"][0:10]
