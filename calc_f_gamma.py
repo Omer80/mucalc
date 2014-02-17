@@ -5,8 +5,8 @@ This script imports data from PPPC 4 DM ID files in order to reproduce
 the precentage of energy that is injected in form of electromagnetic interacting particles
 """
 import numpy as np
-import PPPC4DMID_Reader as pppc
-import mssm_data_Reader as mssm
+from PPPC4DMID_Reader import *
+from mssm_data_Reader import *
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from astropy.table import Table
@@ -18,89 +18,65 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 
 def load_mssm_data():
-	data = mssm.Read_pp_log_mssm_data("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR")
-	data_dict = {}
-	data_dict["mass"] = data.data["m_{\chi_1^0} (GeV)"]
-	data_dict["sigma_v"] = data.data["<\sigma v> (cm^3 s^{-1})"]
-	data_dict["sigma_v_Z"] = data.data["<\sigma v> (Z0 Z0) (cm^3 s^{-1})"]
-	data_dict["sigma_v_W"] = data.data["<\sigma v> (W+ W-) (cm^3 s^{-1})"]
-	data_dict["sigma_v_tau"] = data.data["<\sigma v> (tau+ tau-) (cm^3 s^{-1})"]
-	data_dict["sigma_v_b"] = data.data["<\sigma v> (b bar) (cm^3 s^{-1})"]
-	data_dict["sigma_v_gam"] = data.data["<\sigma v> (gam gam) (cm^3 s^{-1})"]
-	data_dict["sigma_v_Z_gam"] = data.data["<\sigma v> (Z gam) (cm^3 s^{-1})"]
-	return data_dict
+	mssm = Read_pp_log_mssm_data("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR")
+	return mssm.data
 
-def load_pppc_data(masses, channels):	
-	final_SM_nu_e = pppc.ReadPPPC4DMID_data("data/AtProduction_neutrinos_e.dat")
-	final_SM_nu_mu = pppc.ReadPPPC4DMID_data("data/AtProduction_neutrinos_mu.dat")
-	final_SM_nu_tau = pppc.ReadPPPC4DMID_data("data/AtProduction_neutrinos_tau.dat")
-	#final_SM_positrons = pppc.ReadPPPC4DMID_data("data/AtProduction_positrons.dat")
-	#final_SM_gammas = pppc.ReadPPPC4DMID_data("data/AtProduction_gammas.dat")
-	#final_SM_antiprotons = pppc.ReadPPPC4DMID_data("data/AtProduction_antiprotons.dat")
-	#final_SM_antideuterons = pppc.ReadPPPC4DMID_data("data/AtProduction_antideuterons.dat")
+def produce_table(mssm_data, channels):	
+	final_SM_nu_e = ReadPPPC4DMID_data("data/AtProduction_neutrinos_e.dat")
+	final_SM_nu_mu = ReadPPPC4DMID_data("data/AtProduction_neutrinos_mu.dat")
+	final_SM_nu_tau = ReadPPPC4DMID_data("data/AtProduction_neutrinos_tau.dat")
 	
-	#print masses
-	#print channels
-	table = Table([masses],names=('mDM',), meta={'name': 'f_gamma per mDM'})
-	#print table
+	f_gamma = []
 	
-	for channel in channels:
-		print channel
-		nu_e_int = final_SM_nu_e.interp_integrated_column(channel)
-		nu_mu_int = final_SM_nu_mu.interp_integrated_column(channel)
-		nu_tau_int = final_SM_nu_tau.interp_integrated_column(channel)
-		#positrons_int = final_SM_positrons.interp_integrated_column(channel)
-		#gammas_int = final_SM_gammas.interp_integrated_column(channel)
-		#antiprotons_int = final_SM_antiprotons.interp_integrated_column(channel)
-		#antideuterons_int = final_SM_antideuterons.interp_integrated_column(channel)
-		
-		nu_fraction = []
-		
-		for mass in masses:
-			#print mass				
-			nu_e_int_for_mass = float(2 * nu_e_int(mass))
-			#total_energy_for_channel = nu_e_int_for_mass
-			nu_mu_int_for_mass = float(2 * nu_mu_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + nu_mu_int_for_mass
-			nu_tau_int_for_mass = float(2 * nu_tau_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + nu_tau_int_for_mass
-			#positrons_int_for_mass = float(2 * positrons_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + positrons_int_for_mass
-			#gammas_int_for_mass = float(gammas_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + gammas_int_for_mass
-			#antiprotons_int_for_mass = float(2 * antiprotons_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + antiprotons_int_for_mass
-			#antideuterons_int_for_mass = float(2 * antideuterons_int(mass))
-			#total_energy_for_channel = total_energy_for_channel + antideuterons_int_for_mass
+	for row in 	mssm_data[0:10]:
+		mass = row["m_{\chi_1^0} (GeV)"]
+		nu_fractions = {}
+		for channel in channels:
+			#print channel
+			nu_e_int = final_SM_nu_e.interp_integrated_column(channel)
+			nu_mu_int = final_SM_nu_mu.interp_integrated_column(channel)
+			nu_tau_int = final_SM_nu_tau.interp_integrated_column(channel)
 			
-			#print "Total energy for channel", channel, "is", total_energy_for_channel
+			nu_fraction = []
+		
+			nu_e_int_for_mass = float(2 * nu_e_int(mass))
+			nu_mu_int_for_mass = float(2 * nu_mu_int(mass))
+			nu_tau_int_for_mass = float(2 * nu_tau_int(mass))
+			
 			
 			nu_energy = (nu_e_int_for_mass + nu_mu_int_for_mass + nu_tau_int_for_mass)
-			#d_plus_p_energy = (antiprotons_int_for_mass + antideuterons_int_for_mass)
-			#gamma_energy = gammas_int_for_mass
-			#e_energy = positrons_int_for_mass
 			
-			nu_fraction.append(nu_energy/(2 * mass))
+			nu_fractions[channel] = nu_energy / (2 * mass)
 			
-			#print [nu_energy , d_plus_p_energy, e_energy , gamma_energy]
-			
-			
-		table[channel] = np.array(nu_fraction)
+		f_gamma_for_mass = 	calc_f_gamma(row, nu_fractions)
+		print "For mass", mass, "f_gamma is -",f_gamma_for_mass
+		f_gamma.append(f_gamma_for_mass)	
 			
 			
+	#mssm_data["f_gamma"] = np.array(f_gamma)				
 			
-			
-				
-			
-	return table
+	return mssm_data
+
+def calc_f_gamma(row, nu_fractions):
+	print nu_fractions
+	mass = row["m_{\chi_1^0} (GeV)"]
+	sigma_v = row["<\sigma v> (cm^3 s^{-1})"]
+	sigma_v_Z = row["<\sigma v> (Z0 Z0) (cm^3 s^{-1})"]
+	sigma_v_W = row["<\sigma v> (W+ W-) (cm^3 s^{-1})"]
+	sigma_v_tau = row["<\sigma v> (tau+ tau-) (cm^3 s^{-1})"]
+	sigma_v_b = row["<\sigma v> (b bar) (cm^3 s^{-1})"]
+	sigma_v_gam = row["<\sigma v> (gam gam) (cm^3 s^{-1})"]
+	sigma_v_Z_gam = row["<\sigma v> (Z gam) (cm^3 s^{-1})"]
 	
+	return 1.
 	
+		
 def main(channels = ['eL'], mass = 200, save_figures = False, detailed_plots = False):
-	br_data = load_mssm_data()
-	table = load_pppc_data(br_data["mass"],['Z','W','t','b','\[Gamma]'])
-	table.write("table.tex", format='latex')
-	
-	
+	mssm_data = load_mssm_data()
+	table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])
+	#print table
+	#table.write("table.hdf5", format='hdf5',path='data')	
+
 	
 	
 	

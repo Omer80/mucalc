@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate
 from scipy.interpolate import interp1d
 import PPPC4DMID_Reader as pppc
-
+from astropy.table import Table
 
 
 class Read_pp_log_mssm_data(object):
@@ -41,10 +41,11 @@ class Read_pp_log_mssm_data(object):
 		#print len(table)
 		#print len(table[0])
 		
-		self.data = {}
+		#self.data = {}
 		
-		self.data["multip"] = table[0]
-		self.data["chisq"] = table[1]
+		self.data = Table([table[0],table[1]],names=("multip","chisq"), meta={'name': 'mssm data table'})
+		#self.data["multip"] = table[0]
+		#self.data["chisq"] = table[1]
 		
 		for key in self.columns_defs:
 			#print key, self.columns_defs[key]
