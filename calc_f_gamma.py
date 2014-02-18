@@ -13,6 +13,7 @@ from astropy.table import Table
 import argparse
 from progressbar import Bar, ETA, Percentage, ProgressBar
 import mucalc
+import h5py
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -31,11 +32,12 @@ def produce_table(mssm_data, channels):
 	f_gamma = []
 	#i = 0
 	column_length = len(mssm_data)
-	print "Calculating f_gamma for each row."
+	print "Calculating f_gamma for each row.",
 	#progress_bar = ProgressBar(widgets = ['Progress: ', Percentage(), ' ',
 	                                      #Bar(marker='X'), ' ', ETA(), ' ']).start()
 	for row in 	mssm_data:
 		mass = row["m_{\chi_1^0} (GeV)"]
+		print ".",
 
 		nu_fractions = {}
 		for channel in channels:
@@ -56,12 +58,13 @@ def produce_table(mssm_data, channels):
 			nu_fractions[channel] = nu_energy / (2 * mass)
 			
 		f_gamma_for_mass = 	calc_f_gamma(row, nu_fractions)
-		print "mDM", mass, "f_gamma ",f_gamma_for_mass
+		#print "mDM", mass, "f_gamma ",f_gamma_for_mass
 		f_gamma.append(f_gamma_for_mass)
 		#i = i+1
 		#progress_bar.update(i/column_length)
 			
 	#progress_bar.finish()
+	print " "
 	mssm_data["f_gamma"] = np.array(f_gamma)				
 			
 	return mssm_data
