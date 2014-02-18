@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from astropy.table import Table
 import argparse
+from progressbar import Bar, ETA, Percentage, ProgressBar
+import mucalc
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -27,9 +29,14 @@ def produce_table(mssm_data, channels):
 	final_SM_nu_tau = ReadPPPC4DMID_data("data/AtProduction_neutrinos_tau.dat")
 	
 	f_gamma = []
-	
-	for row in 	mssm_data[0:10]:
+	#i = 0
+	column_length = len(mssm_data)
+	print "Calculating f_gamma for each row."
+	#progress_bar = ProgressBar(widgets = ['Progress: ', Percentage(), ' ',
+	                                      #Bar(marker='X'), ' ', ETA(), ' ']).start()
+	for row in 	mssm_data:
 		mass = row["m_{\chi_1^0} (GeV)"]
+
 		nu_fractions = {}
 		for channel in channels:
 			#print channel
@@ -49,33 +56,44 @@ def produce_table(mssm_data, channels):
 			nu_fractions[channel] = nu_energy / (2 * mass)
 			
 		f_gamma_for_mass = 	calc_f_gamma(row, nu_fractions)
-		print "For mass", mass, "f_gamma is -",f_gamma_for_mass
-		f_gamma.append(f_gamma_for_mass)	
+		print "mDM", mass, "f_gamma ",f_gamma_for_mass
+		f_gamma.append(f_gamma_for_mass)
+		#i = i+1
+		#progress_bar.update(i/column_length)
 			
-			
-	#mssm_data["f_gamma"] = np.array(f_gamma)				
+	#progress_bar.finish()
+	mssm_data["f_gamma"] = np.array(f_gamma)				
 			
 	return mssm_data
 
 def calc_f_gamma(row, nu_fractions):
-	print nu_fractions
+	#print nu_fractions
 	mass = row["m_{\chi_1^0} (GeV)"]
 	sigma_v = row["<\sigma v> (cm^3 s^{-1})"]
-	sigma_v_Z = row["<\sigma v> (Z0 Z0) (cm^3 s^{-1})"]
-	sigma_v_W = row["<\sigma v> (W+ W-) (cm^3 s^{-1})"]
-	sigma_v_tau = row["<\sigma v> (tau+ tau-) (cm^3 s^{-1})"]
-	sigma_v_b = row["<\sigma v> (b bar) (cm^3 s^{-1})"]
-	sigma_v_gam = row["<\sigma v> (gam gam) (cm^3 s^{-1})"]
-	sigma_v_Z_gam = row["<\sigma v> (Z gam) (cm^3 s^{-1})"]
-	
-	return 1.
+	br_Z = row["<\sigma v> (Z0 Z0) (cm^3 s^{-1})"] / sigma_v
+	br_W = row["<\sigma v> (W+ W-) (cm^3 s^{-1})"]/ sigma_v
+	br_tau = row["<\sigma v> (tau+ tau-) (cm^3 s^{-1})"]/ sigma_v
+	br_b = row["<\sigma v> (b bar) (cm^3 s^{-1})"]/ sigma_v
+	br_gam = row["<\sigma v> (gam gam) (cm^3 s^{-1})"]/ sigma_v
+	br_Z_gam = row["<\sigma v> (Z gam) (cm^3 s^{-1})"]/ sigma_v
+	total =  br_Z+br_W+br_tau+br_b+br_gam
+	nu_Z = nu_fractions['Z']
+	nu_W = nu_fractions['W']
+	nu_tau = nu_fractions['t']
+	nu_b = nu_fractions['b']
+	nu_gam = nu_fractions['\[Gamma]']
+	#print "Each br",br_Z,br_W,br_tau,br_b,br_gam
+	#print "total", total
+	f_nu = 	(br_Z*nu_Z + br_W*nu_W + br_tau*nu_tau + br_b*nu_b + br_gam*nu_gam)/total
+	#print "f_gamma", (1. - f_nu)
+	return (1. - f_nu)
 	
 		
 def main(channels = ['eL'], mass = 200, save_figures = False, detailed_plots = False):
 	mssm_data = load_mssm_data()
 	table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])
 	#print table
-	#table.write("table.hdf5", format='hdf5',path='data')	
+	table.write("table.hdf5", format='hdf5',path='data')	
 
 	
 	

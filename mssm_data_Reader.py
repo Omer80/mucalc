@@ -3,7 +3,7 @@ import scipy.integrate
 from scipy.interpolate import interp1d
 import PPPC4DMID_Reader as pppc
 from astropy.table import Table
-
+from progressbar import Bar, ETA, Percentage, ProgressBar
 
 class Read_pp_log_mssm_data(object):
 	'''
@@ -35,21 +35,28 @@ class Read_pp_log_mssm_data(object):
 	
 	def load_data(self, filename):
 		txt_file = filename+".txt"
+		print "Opening mssm data file"
+		progress_bar = ProgressBar(widgets = ['Progress: ', Percentage(), ' ', Bar(marker='X'), ' ', ETA(), ' ']).start()
 		#data_file = "data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR.txt"
 		table = np.loadtxt(txt_file, skiprows=0 , unpack=True)
-		
 		#print len(table)
 		#print len(table[0])
 		
 		#self.data = {}
+		total_length = len(table[0])
 		
 		self.data = Table([table[0],table[1]],names=("multip","chisq"), meta={'name': 'mssm data table'})
 		#self.data["multip"] = table[0]
 		#self.data["chisq"] = table[1]
-		
+		i = 0
 		for key in self.columns_defs:
 			#print key, self.columns_defs[key]
 			self.data[self.columns_defs[key]] = table[key-1]
+			i = i + 1
+			progress_bar.update(i/total_length)
+		progress_bar.finish()
+		print "Finished reading mssm data file"
+		
 		
 if __name__ == "__main__":
 	data = Read_pp_log_mssm_data("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR")
