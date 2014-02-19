@@ -164,14 +164,14 @@ def main():
 	print "H", H_z(10**5)
 	print "tau",tau(10**5)
 	print "y axis of Figure 10 for z= 10^5 is :  ", y(10**5)
-	print "y axis of Figure 10 for z= 100 is :  ", y(100)
+	print "y axis of Figure 10 for z= 100 is :  ", y(10)
 	print "y axis of Figure 10 for z= 2.5*10^6 is :  ", y(2.5e6)
-	#plot(y,100, 5e6)
+	plot(y,100, 2.5e6)
 
 def plot(function, min_x, max_x):
-	t = np.logspace(min_x, max_x,20)
+	t = np.linspace(min_x, max_x,100000)
 	s = function(t)
-	plt.plot(t, s, 'b-', lw=2)
+	plt.loglog(t, s, 'b-', lw=2)
 	
 	#plt.xlabel(r'z')
 	#plt.ylabel(r'(1+z)G d\eps / dz')
