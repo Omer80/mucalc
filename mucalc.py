@@ -13,6 +13,7 @@ from scipy.interpolate import interp1d
 import const
 import math
 import argparse
+import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -136,7 +137,7 @@ def mu(z): # I have problem in interpreting this equation from the paper, there 
 	first_part = 7.43e-5 * ((1 + z)/(2e6))
 	second_part = 1.07e-6 * (((1 + z)/(2e6))**(-3/2))
 	x_c = (first_part + second_part)**(1/2)
-	return mu_c * math.exp(-x_c/x_e)
+	return mu_c * np.exp(-x_c/x_e)
 	
 def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 	"""
@@ -148,7 +149,7 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 	# With dN/dz
 	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)-(4/3)*(dNdz(z))) * math.exp(-tau(z))) 
 	# Without dN/dz
-	integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)) * math.exp(-tau(z)))
+	integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)) * np.exp(-tau(z)))
 	second_part = const.C*const.B*integrate.romberg(integrand,z_min,z_i)
 	#return first_part+second_part
 	return second_part
@@ -157,22 +158,24 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 def main():
 	sigma_v = 3e-27 / (const.Omega_cdm * (const.h0**2)) 
 	dot_epsilon = lambda z: dQdz(1,10,sigma_v, z)
-	y = lambda z: dot_epsilon(z) * (math.exp(-tau(z))/H_z(z).value)
+	y = lambda z: dot_epsilon(z) * (np.exp(-tau(z))/H_z(z).value)
 	print "sigma_v",sigma_v
 	print "dot_epsilon", dot_epsilon(10**5)
 	print "H", H_z(10**5)
 	print "tau",tau(10**5)
 	print "y axis of Figure 10 for z= 10^5 is :  ", y(10**5)
-	plot(y,100, 5e6)
+	print "y axis of Figure 10 for z= 100 is :  ", y(100)
+	print "y axis of Figure 10 for z= 2.5*10^6 is :  ", y(2.5e6)
+	#plot(y,100, 5e6)
 
 def plot(function, min_x, max_x):
-	t = np.logspace(min_x, max_x, 1000)
+	t = np.logspace(min_x, max_x,20)
 	s = function(t)
 	plt.plot(t, s, 'b-', lw=2)
 	
-	plt.xlabel(r'z')
-	plt.ylabel(r'(1+z)G d\eps / dz')
-	plt.title(r'Energy injection from dark matter annihilation for 10 GeV WIMP with $f_{\gamma} = 1$')
+	#plt.xlabel(r'z')
+	#plt.ylabel(r'(1+z)G d\eps / dz')
+	#plt.title(r'Energy injection from dark matter annihilation for 10 GeV WIMP with $f_{\gamma} = 1$')
 	plt.grid(True)
 	plt.show()
 
