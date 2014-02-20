@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from astropy.table import Table
 import argparse
-from progressbar import Bar, ETA, Percentage, ProgressBar
 import mucalc
 import h5py
 from matplotlib import rc
@@ -32,6 +31,7 @@ def produce_table(mssm_data, channels):
 	final_SM_nu_tau = ReadPPPC4DMID_data("data/AtProduction_neutrinos_tau.dat")
 	
 	f_gamma = []
+	mu = []
 	#i = 0
 	column_length = len(mssm_data)
 	print "Calculating f_gamma for each row.",
@@ -39,6 +39,7 @@ def produce_table(mssm_data, channels):
 	                                      #Bar(marker='X'), ' ', ETA(), ' ']).start()
 	for row in 	mssm_data:
 		mass = row["m_{\chi_1^0} (GeV)"]
+		sigma_v = row["<\sigma v> (cm^3 s^{-1})"]
 		print ".",
 
 		nu_fractions = {}
@@ -60,14 +61,17 @@ def produce_table(mssm_data, channels):
 			nu_fractions[channel] = nu_energy / (2 * mass)
 			
 		f_gamma_for_mass = 	calc_f_gamma(row, nu_fractions)
+		mu_distortion_for_mass = mucalc.wimp_mucalc(mass, sigma_v , f_gamma_for_mass)
 		#print "mDM", mass, "f_gamma ",f_gamma_for_mass
 		f_gamma.append(f_gamma_for_mass)
+		mu.append(mu_distortion_for_mass)
 		#i = i+1
 		#progress_bar.update(i/column_length)
 			
 	#progress_bar.finish()
 	print " "
-	mssm_data["f_gamma"] = np.array(f_gamma)				
+	mssm_data["f_gamma"] = np.array(f_gamma)
+	mssm_data["\mu distortion"]			
 			
 	return mssm_data
 
