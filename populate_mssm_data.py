@@ -21,8 +21,8 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-def load_mssm_data():
-	mssm = Read_pp_log_mssm_data("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR")
+def load_mssm_data(mssm_filename):
+	mssm = Read_pp_log_mssm_data("data/"+mssm_filename)
 	return mssm.data
 
 def produce_table(mssm_data, channels):	
@@ -70,8 +70,8 @@ def produce_table(mssm_data, channels):
 			
 	#progress_bar.finish()
 	print " "
-	mssm_data["f_gamma"] = np.array(f_gamma)
-	mssm_data["\mu distortion"]			
+	mssm_data["f_{\gamma}"] = np.array(f_gamma)
+	mssm_data["\mu distortion"]	 = 	np.array(mu)	
 			
 	return mssm_data
 
@@ -99,10 +99,13 @@ def calc_f_gamma(row, nu_fractions):
 	
 		
 def main():
-	mssm_data = load_mssm_data()
+	mssm_filename = "pp_log_mssm1_cdm_mup_CTA_sigmavXBR"
+	mssm_data = load_mssm_data(mssm_filename)
 	table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])
-	#print table
-	table.write("data/pp_log_mssm1_cdm_mup_CTA_sigmavXBR.hdf5", format='hdf5',path='data')	
+	#print table["multip","chisq","m_{\chi_1^0} (GeV)","f_gamma","\mu distortion"]
+	table.write("results/mu_f_gamma_with_"+mssm_filename+".tex", 
+	            format='ascii.fixed_width_no_header', delimiter=' ')
+	         #   format = "latex")	
 
 
 # Parser setup
