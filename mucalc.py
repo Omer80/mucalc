@@ -90,17 +90,17 @@ def wimp_mucalc(mDM, sigma_v, f_gamma):
 
 H_z = lambda z : cosmology.H(z).to(1/u.s).value
 
-def ndm_z(z):
+def ndm_z(mDM, z):
 	"""
 	"""
-	return (const.Rho_cr * const.Omega_cdm / const.mdm) * ((1+z)**3)
+	return (const.Rho_cr * const.Omega_cdm / mDM) * ((1+z)**3)
 	
 def dQdz(f_gamma, mDM, sigma_v, z):
 	"""
 	Energy injection calculation from eq. (5.5) in arXiv: 1203.2601v2 
 	"""
 	
-	dQdz_numerator = (mDM * const.c**2 * (ndm_z(z)**2) * sigma_v)
+	dQdz_numerator = (mDM * const.c**2 * (ndm_z(mDM,z)**2) * sigma_v)
 	dQdz_denominator = (const.a * ((const.TCMB * (1+z))**4))
 	return f_gamma * (dQdz_numerator/dQdz_denominator)
 	
@@ -160,23 +160,23 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 def main():
 	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
 	f_gamma = 1.
-	mDM = (10 * const.GeV)/(const.c**2)
-	dot_epsilon = lambda z: dQdz(f_gamma,mDM,sigma_v, z)
-	y = lambda z: dot_epsilon(z) * (np.exp(-tau(z))/H_z(z))
-	print "sigma_v",sigma_v
-	print "dot_epsilon", dot_epsilon(10**5)
-	print "H", H_z(10**5)
-	print "tau",tau(10**5)
-	print "y axis of Figure 10 for z= 10^5 is :  ", y(10**5)
-	print "y axis of Figure 10 for z= 100 is :  ", y(10)
-	print "y axis of Figure 10 for z= 2.5*10^6 is :  ", y(2.5e6)
-	dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z)
-	integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz_z(z)) * np.exp(-tau(z)))
-	print "integrand",integrand(10**5)
-	z_i = 2.0e6
-	z_min = 5.0e4
-	print "mu", integrate.romberg(integrand,z_min,z_i)
-	print "mu_0", mu_0(z_i, z_min, f_gamma, mDM, sigma_v)
+	#mDM = (10 * const.GeV)/(const.c**2)
+	#dot_epsilon = lambda z: dQdz(f_gamma,mDM,sigma_v, z)
+	#y = lambda z: dot_epsilon(z) * (np.exp(-tau(z))/H_z(z))
+	#print "sigma_v",sigma_v
+	#print "dot_epsilon", dot_epsilon(10**5)
+	#print "H", H_z(10**5)
+	#print "tau",tau(10**5)
+	#print "y axis of Figure 10 for z= 10^5 is :  ", y(10**5)
+	#print "y axis of Figure 10 for z= 100 is :  ", y(10)
+	#print "y axis of Figure 10 for z= 2.5*10^6 is :  ", y(2.5e6)
+	#dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z)
+	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz_z(z)) * np.exp(-tau(z)))
+	#print "integrand",integrand(10**5)
+	#z_i = 2.0e6
+	#z_min = 5.0e4
+	#print "mu", integrate.romberg(integrand,z_min,z_i)
+	#print "mu_0", mu_0(z_i, z_min, f_gamma, mDM, sigma_v)
 	print "mu", wimp_mucalc(10, sigma_v, f_gamma)
 	#print "mu distortion magnitude", wimp_mucalc(10,sigma_v, 1) 
 	#plot(y,100, 2.5e6)
