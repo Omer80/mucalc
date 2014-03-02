@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from astropy.table import Table
 import argparse
+from progressbar import Bar, ETA, Percentage, ProgressBar
 import mucalc
 import h5py
 from matplotlib import rc
@@ -32,15 +33,16 @@ def produce_table(mssm_data, channels):
 	
 	f_gamma = []
 	mu = []
-	#i = 0
+	i = 0
 	column_length = len(mssm_data)
+	print "number of mssm models", column_length
 	print "Calculating f_gamma for each row.",
-	#progress_bar = ProgressBar(widgets = ['Progress: ', Percentage(), ' ',
-	                                      #Bar(marker='X'), ' ', ETA(), ' ']).start()
+	progress_bar = ProgressBar(widgets = ['Progress: ', Percentage(), ' ',
+	                                      Bar(marker='X'), ' ', ETA(), ' ']).start()
 	for row in 	mssm_data:
 		mass = row["m_{\chi_1^0} (GeV)"]
 		sigma_v = row["<\sigma v> (cm^3 s^{-1})"]
-		print ".",
+		#print ".",
 
 		nu_fractions = {}
 		for channel in channels:
@@ -65,14 +67,16 @@ def produce_table(mssm_data, channels):
 		#print "mDM", mass, "f_gamma ",f_gamma_for_mass
 		f_gamma.append(f_gamma_for_mass)
 		mu.append(mu_distortion_for_mass)
-		#i = i+1
-		#progress_bar.update(i/column_length)
+		i = i+1
+		progress_bar.update(i/column_length)
 			
-	#progress_bar.finish()
+	progress_bar.finish()
 	print " "
 	mssm_data["f_{\gamma}"] = np.array(f_gamma)
-	mssm_data["\mu distortion"]	 = 	np.array(mu)	
-			
+	mssm_data["\mu distortion"]	 = 	np.array(mu)
+	mssm_data["f_{\gamma}"].format = '%.19e'
+	mssm_data["\mu distortion"].format = '%.19e'
+	mssm_data.format = '%.19e'			
 	return mssm_data
 
 def calc_f_gamma(row, nu_fractions):
@@ -103,7 +107,7 @@ def main():
 	mssm_data = load_mssm_data(mssm_filename)
 	table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])
 	#print table["multip","chisq","m_{\chi_1^0} (GeV)","f_gamma","\mu distortion"]
-	table.write("results/mu_f_gamma_with_"+mssm_filename+".tex", 
+	table.write("results/mu_f_gamma_with_"+mssm_filename+".txt", 
 	            format='ascii.fixed_width_no_header', delimiter=' ')
 	         #   format = "latex")	
 
