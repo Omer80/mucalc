@@ -46,12 +46,13 @@ class Read_pp_log_mssm_data(object):
 		total_length = len(table[0])
 		
 		self.data = Table([table[0],table[1]],names=("multip","chisq"), meta={'name': 'mssm data table'})
-		#self.data["multip"] = table[0]
-		#self.data["chisq"] = table[1]
+		self.data["multip"].format = '%.19e'
+		self.data["chisq"].format = '%.19e'
 		i = 0
 		for key in self.columns_defs:
 			#print key, self.columns_defs[key]
 			self.data[self.columns_defs[key]] = table[key-1]
+			self.data[self.columns_defs[key]].format = '%.19e'
 			i = i + 1
 			progress_bar.update(i/total_length)
 		progress_bar.finish()
