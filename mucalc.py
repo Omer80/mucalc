@@ -33,17 +33,28 @@ def wimp_mucalc(mDM, sigma_v, f_gamma):
 
 H_z = lambda z : cosmology.H(z).to(1/u.s).value
 
-def ndm(mDM, z):
-	"""
+def ndm_0(mDM, z):
+	"""(float, float) -> float
+	Giving the average number density of Darm Matter, without considering UCMH
 	"""
 	return (const.Rho_cr * const.Omega_cdm / mDM) * ((1+z)**3)
+	
+def ndm_squared(mDM, sigma_v, z, ucmh = False):
+	'''(float, float, float) -> float
+	Choosing between Darm matter number density with and without UCMH
+	'''
+	if ucmh == False:
+		ndm_squared_z = (ndm_0(mDM, z)**2)
+	elif ucmh == True:
+		ndm_squared_z = (ndm_0(mDM, z)**2) + (ucmh.avg_rho_ucmh_squared(mDM, sigma_v, z)/(mDM**2))
+	return ndm_squared_z
 	
 def dQdz(f_gamma, mDM, sigma_v, z):
 	"""
 	Energy injection calculation from eq. (5.5) in arXiv: 1203.2601v2 
 	"""
 	
-	dQdz_numerator = (mDM * const.c**2 * (ndm(mDM,z)**2) * sigma_v)
+	dQdz_numerator = (mDM * const.c**2 * (ndm_squared(mDM, sigma_v,z)) * sigma_v)
 	dQdz_denominator = (const.a * ((const.TCMB * (1+z))**4))
 	return f_gamma * (dQdz_numerator/dQdz_denominator)
 	
@@ -103,26 +114,10 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 def main():
 	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
 	f_gamma = 1.
-	#mDM = (10 * const.GeV)/(const.c**2)
-	#dot_epsilon = lambda z: dQdz(f_gamma,mDM,sigma_v, z)
-	#y = lambda z: dot_epsilon(z) * (np.exp(-tau(z))/H_z(z))
-	#print "sigma_v",sigma_v
-	#print "dot_epsilon", dot_epsilon(10**5)
-	#print "H", H_z(10**5)
-	#print "tau",tau(10**5)
-	#print "y axis of Figure 10 for z= 10^5 is :  ", y(10**5)
-	#print "y axis of Figure 10 for z= 100 is :  ", y(10)
-	#print "y axis of Figure 10 for z= 2.5*10^6 is :  ", y(2.5e6)
-	#dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z)
-	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz_z(z)) * np.exp(-tau(z)))
-	#print "integrand",integrand(10**5)
-	#z_i = 2.0e6
-	#z_min = 5.0e4
-	#print "mu", integrate.romberg(integrand,z_min,z_i)
-	#print "mu_0", mu_0(z_i, z_min, f_gamma, mDM, sigma_v)
 	print "mu", wimp_mucalc(10, sigma_v, f_gamma)
-	#print "mu distortion magnitude", wimp_mucalc(10,sigma_v, 1) 
 	#plot(y,100, 2.5e6)
+	
+	
 
 def plot(function, min_x, max_x):
 	t = np.logspace(np.log10(min_x), np.log10(max_x),100000)
