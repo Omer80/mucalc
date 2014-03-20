@@ -5,23 +5,13 @@ Based on arXiv:0908.4082v5 this code is building the function related to Ultraco
 Those equations will be used to estimate the amplification in WIMP annihilation at the early Universe
 """
 import numpy as np
-from PPPC4DMID_Reader import *
-from mssm_data_Reader import *
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-from astropy.table import Table
 from astropy import units as u
 from astropy import constants as const
 from astropy import cosmology
+from scipy import integrate
+from mucalc_constants import *
 import argparse
-from progressbar import Bar, ETA, Percentage, ProgressBar
-import mucalc
-import h5py
-from matplotlib import rc
-rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-## for Palatino and other serif fonts use:
-#rc('font',**{'family':'serif','serif':['Palatino']})
-rc('text', usetex=True)
+
 
 cosmology.core.set_current(cosmology.Planck13)
 
@@ -49,7 +39,7 @@ def R_h(z):
 	as in eq. (6) at arXiv:09084.082v5
 	'''
 	R_h = 0.019 * (1000./(z + 1.)) * ((M_h(z).value)**(1./3)) # gives R_h in parsec
-	return R_h * u.pc # mucalc.const.parsec
+	return R_h * u.pc # const.parsec
 
 t = lambda z: cosmology.Planck13.age(z).to(u.s).value
 
@@ -79,11 +69,23 @@ def rho_chi(mDM, sigma_v, t_i,r,z):
 sigma_ucmh_pert = lambda n: 9.5e-5 * (M_H_z_X/10e56)**((1. - n)/4.) # eq. (9) at arXiv:0908.4082v5
 
 def Sigma_ucmh(z):
+	'''(float) -> (float)
+	eq. (8) from arXiv:0908.4082v5
 	'''
-	'''
-	return	
+	integrand = lambda delta : (1/(np.sqrt(2*np.pi)*sigma_ucmh_pert)) * np.exp(-(delta**2)/(2*(sigma_ucmh_pert**2)))
+	Omega_CMD_z = f_chi * cosmology.Planck13.Om(z)
+	Sigma_ucmh_z =  Omega_CMD_z * integrate.romberg(integrand,10-3,0.3)
+	return	Sigma_ucmh_z
 
-n_ucmh = lambda z : (mucalc.const.Rho_cr * Sigma_ucmh(z)) / M_h(z)
+n_ucmh = lambda z: (const.Rho_cr * Sigma_ucmh(z)) / M_h(z)
+
+def avg_rho_ucmh_squared(z):
+	'''
+	'''
+	rho_z = lambda r: ''' '''
+	integrand = lambda r: 4*np.pi*(r**2)*((rho_z(r))**2)
+	return n_ucmh(z) *  integrate.romberg(integrand,0,R_h(z))
+
 
 def main():
 	a = 1. * u.solMass
