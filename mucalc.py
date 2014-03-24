@@ -43,10 +43,9 @@ def ndm_squared(mDM, sigma_v, z, ucmh = False):
 	'''(float, float, float) -> float
 	Choosing between Darm matter number density with and without UCMH
 	'''
-	if ucmh == False:
-		ndm_squared_z = (ndm_0(mDM, z)**2)
-	elif ucmh == True:
-		ndm_squared_z = (ndm_0(mDM, z)**2) + (ucmh.avg_rho_ucmh_squared(mDM, sigma_v, z)/(mDM**2))
+	ndm_squared_z = (ndm_0(mDM, z)**2)
+	if ucmh == True:
+		ndm_squared_z = ndm_squared_z + (ucmh.avg_n_ucmh_squared(mDM, sigma_v, z))
 	return ndm_squared_z
 	
 def dQdz(f_gamma, mDM, sigma_v, z):
