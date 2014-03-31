@@ -24,11 +24,11 @@ cosmology.core.set_current(cosmology.Planck13)
 from mucalc_constants import *
 import ucmh
 
-def wimp_mucalc(mDM, sigma_v, f_gamma):
+def wimp_mucalc(mDM, sigma_v, f_gamma,n=1., with_ucmh = False):
 	z_i = 2.0e6
 	z_min = 5.0e4
 	mDM = (mDM * const.GeV)/(const.c**2)
-	return mu_0(z_i, z_min,f_gamma, mDM, sigma_v)
+	return mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n=1., with_ucmh = False)
 	
 
 H_z = lambda z : cosmology.H(z).to(1/u.s).value
@@ -39,21 +39,21 @@ def ndm_0(mDM, z):
 	"""
 	return (const.Rho_cr * const.Omega_cdm / mDM) * ((1+z)**3)
 	
-def ndm_squared(mDM, sigma_v, z, ucmh = False):
+def ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False):
 	'''(float, float, float) -> float
 	Choosing between Darm matter number density with and without UCMH
 	'''
 	ndm_squared_z = (ndm_0(mDM, z)**2)
-	if ucmh == True:
-		ndm_squared_z = ndm_squared_z + (ucmh.avg_n_ucmh_squared(mDM, sigma_v, z))
+	if with_ucmh == True:
+		ndm_squared_z = ndm_squared_z + ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
 	return ndm_squared_z
 	
-def dQdz(f_gamma, mDM, sigma_v, z):
+def dQdz(f_gamma, mDM, sigma_v, z,n=1., with_ucmh = False):
 	"""
 	Energy injection calculation from eq. (5.5) in arXiv: 1203.2601v2 
 	"""
 	
-	dQdz_numerator = (mDM * const.c**2 * (ndm_squared(mDM, sigma_v,z)) * sigma_v)
+	dQdz_numerator = (mDM * const.c**2 * (ndm_squared(mDM, sigma_v,z,n, with_ucmh)) * sigma_v)
 	dQdz_denominator = (const.a * ((const.TCMB * (1+z))**4))
 	return f_gamma * (dQdz_numerator/dQdz_denominator)
 	
@@ -93,7 +93,7 @@ def mu(z): # I have problem in interpreting this equation from the paper, there 
 	x_c = (first_part + second_part)**(1/2)
 	return mu_c * np.exp(-x_c/x_e)
 	
-def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
+def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n=1., with_ucmh = False):
 	"""
 	Chemical potential calculation from eq. (3.6) in arXiv: 1203.2601v2
 	I do not consider any initial mu, so the first part of the equation is not taken into account
@@ -103,7 +103,7 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 	# With dN/dz
 	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)-(4/3)*(dNdz(z))) * math.exp(-tau(z))) 
 	# Without dN/dz
-	dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z)
+	dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z,n, with_ucmh)
 	integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz_z(z)) * np.exp(-tau(z)))
 	second_part = const.C*const.B*integrate.romberg(integrand,z_min,z_i)
 	#return first_part+second_part
@@ -113,12 +113,35 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v):
 def main():
 	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
 	f_gamma = 1.
-	print "mu", wimp_mucalc(10, sigma_v, f_gamma)
+	mDM = 10.
+	z = 2.e6
+	#print "ndm_0(mDM, z)",ndm_0(mDM, z)
+	#print "ndm_squared_z =", (ndm_0(mDM, z)**2)
+	#print "ndm with ucmh =", ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, 1.25)
+	ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
+	ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)
+	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)
+	#print "mu", wimp_mucalc(mDM, sigma_v, f_gamma)
 	#plot(y,100, 2.5e6)
+	plot_density_squared(ndm_0_n, ndm_ucmh_n, 1., 1.30)
 	
+def plot_density_squared(function1, function2 , min_x, max_x):
+	t = np.linspace(min_x, max_x,100)
+	s1 = function1(t)
+	s2 = function2(t)
+	plt.yscale('log')
+	plt.plot(t, s1, 'b-', lw=3, label = r"Only normal DM $density^2$")
+	plt.plot(t, s2, 'r-', lw=3, label = r"$Density^2$ with UCMH")
 	
+	plt.xlabel(r'spectral index $n$')
+	plt.ylabel(r'$< {density^{2}} > $')
+	plt.title(r'Change of average of $density^2$ as function of spectral index')
+	plt.legend(loc = 4)
+	plt.grid(True, which="both")
+	plt.show()	
 
-def plot(function, min_x, max_x):
+def plot_energy_injection(function, min_x, max_x):
 	t = np.logspace(np.log10(min_x), np.log10(max_x),100000)
 	s = function(t)
 	plt.loglog(t, s, 'b-', lw=3)

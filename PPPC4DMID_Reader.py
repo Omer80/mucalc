@@ -1,3 +1,10 @@
+"""
+Omer Tzuk, January 2014
+PPPC 4 DM ID data reader Version 0.1
+This script 
+
+"""
+
 import numpy as np
 import scipy.integrate
 from scipy.interpolate import interp1d

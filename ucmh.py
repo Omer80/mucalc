@@ -10,6 +10,7 @@ from astropy import constants as c
 from astropy import cosmology
 from scipy import integrate
 from scipy import special
+from scipy.stats import norm
 from mucalc_constants import *
 import decimal
 import argparse
@@ -39,7 +40,7 @@ T_ee = 0.51e3   * u.eV
 # Setting up the phase transition time to be at the positron-electron annihilation phase
 T_phase_transition = T_ee
 # Calculating time of phase transition
-t_i = cosmology.Planck13.age(T_phase_transition.value/(cosmology.Planck13.Tcmb0.value * (8.617e-5))-1).to(u.s).value
+t_i = cosmology.Planck13.age(T_phase_transition.value/(cosmology.Planck13.Tcmb0.value * (8.617e-5))-1.).to(u.s).value
 
 # Perturbation spectrum index
 n=1.
@@ -84,46 +85,86 @@ def R_h(z):
 t = lambda z: cosmology.Planck13.age(z).to(u.s).value
 
 
-rho_max = lambda mDM,sigma_v, z: (1. / (sigma_v *(t(z) - t_i)))
+rho_max = lambda mDM,sigma_v, z: (mDM / (sigma_v *(t(z) - t_i)))
 
 
 rho_chi = lambda r,z:(3. * f_chi * M_h(z)) / (16. * np.pi * (R_h(z)**(3./4)) * (r**(9./4))) # eq. (5) at arXiv:0908.4082v5
-sigma_ucmh_pert = lambda n: (9.5e-5 * (M_H_z_X/10e56)**((1. - n)/4.)).value # eq. (9) at arXiv:0908.4082v5
+r_rho = lambda rho_chi,z:((3. * f_chi * M_h(z)) / (16. * np.pi * (R_h(z)**(3./4)) * (rho_chi)))**(4./9) # inverse eq. (5) at arXiv:0908.4082v5
+sigma_ucmh_pert = lambda n: (9.5e-5 * (M_H_z_X.to(u.g).value/10e56)**((1. - n)/4.)) # eq. (9) at arXiv:0908.4082v5
 
-def Sigma_ucmh(z):
+def Sigma_ucmh(n, z):
 	'''(float) -> (float)
 	eq. (8) from arXiv:0908.4082v5
 	'''
-	x = lambda delta: delta/sigma_ucmh_pert(n)
-	print "sigma_ucmh_pert(n)",sigma_ucmh_pert(n)
+	#print "n", n
+	#x = lambda delta: delta/sigma_ucmh_pert(n)
+	#print "sigma_ucmh_pert(n)",sigma_ucmh_pert(n)
 	Omega_CMD_z = f_chi * cosmology.Planck13.Om(z)
-	print "Sigma_ucmh first part",(Omega_CMD_z / np.sqrt(2.* np.pi))
-	int_f = lambda delta: (1./2) * special.erf(x(delta)/np.sqrt(2))
-	print "int_f(0.3)",int_f(0.3),"int_f(10e-3)",int_f(10e-3)
-	Sigma_ucmh_z =  Omega_CMD_z * float(int_f(0.3) - int_f(10e-3))
-	print "Sigma_ucmh_z",Sigma_ucmh_z
+	#print "Sigma_ucmh first part",(Omega_CMD_z / np.sqrt(2.* np.pi))
+	#int_f = lambda delta: (1./2) * special.erf(x(delta)/np.sqrt(2))
+	#print "int_f(0.3)",int_f(0.3),"int_f(10e-3)",int_f(1e-3)
+	#Sigma_ucmh_z =  Omega_CMD_z * float(int_f(0.3) - int_f(1.e-3))
+	
+	# Analytical integration using scipy.stats
+	x0 = 1.e-3
+	x1 = 0.3
+	s = sigma_ucmh_pert(n)
+	
+	Sigma_ucmh_z = norm.sf(x0, scale = s) - norm.sf(x1, scale = s)
+	
+	# Numerical integration
+	#integrand = lambda delta: (1./(np.sqrt(2 * np.pi)*sigma_ucmh_pert(n))) * np.exp(-(delta**2)/(2. * sigma_ucmh_pert(n)**2))
+	#Sigma_ucmh_z = Omega_CMD_z * integrate.romberg(integrand,(10.**(-3)),0.3,tol=1.e-41, divmax=120)
 	return	Sigma_ucmh_z
 
-n_ucmh = lambda z: (const.Rho_cr * Sigma_ucmh(z)) / M_h(z)
+ndm_0 = lambda mDM, z: (const.Rho_cr * const.Omega_cdm / mDM) * ((1+z)**3)
 
-def avg_n_ucmh_squared(mDM, sigma_v, z):
+n_ucmh = lambda n, z: (const.Rho_cr * Sigma_ucmh(n, z)) / M_h(z)
+
+def avg_n_ucmh_squared(mDM, sigma_v, z, n):
 	'''
 	'''
-	n_maz_z = rho_max(mDM,sigma_v, z)/mDM
-	first_part = ((R_h(z)**3.)/3.)* (n_maz_z**2.)
-	f = (3. * f_chi * M_h(z)) / (mDM * 16. * np.pi * (R_h(z)**(3./4)))
-	second_part = (2./3) * (f**2) * (1./(R_h(z)**(3./2)))
-	avg_n_ucmh_squared_z = 4 * n_ucmh(z) *np.pi*(first_part +  second_part)
+	r_cut = r_rho(rho_max(mDM, sigma_v,z),z)
+	n_max_z = rho_max(mDM,sigma_v, z)/mDM
+	ndm_0_z = ndm_0(mDM, z)
+	R_h_z = R_h(z)
+	first_part = ((r_cut**3.)/3.)* (n_max_z**2.)
+	f = (3. * f_chi * M_h(z)) / (mDM * 16. * np.pi * (R_h_z**(3./4)))
+	second_part = (2./3) * (f**2) * (1./(r_cut**(3./2)))
+	avg_n_ucmh_squared_z = 4. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
+	
+	# Adding cross term
+	first_part = ((r_cut**3.)/3.)* (n_max_z* ndm_0_z)
+	# Numerical integration of second part
+	#integrand = lambda r: 	ndm_0_z * f * (1./(r**(9./4))) * r**2.
+	#second_part = integrate.romberg(integrand, r_cut, R_h_z, divmax = 20)
+	# Analytical integration of second part
+	second_part = (4./3) * f * ndm_0_z * (R_h_z**(3./4) - r_cut**(3./4))
+	#print avg_n_ucmh_squared_z
+	#print 8. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
+	#print "second part numerical", second_part
+	#print "second part analytical", second_part_analytical
+	avg_n_ucmh_squared_z = avg_n_ucmh_squared_z + 8. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
 	return avg_n_ucmh_squared_z
 
 
 def main():
 	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2))
 	mDM = (10 * const.GeV)/(const.c**2)
-	z = 10e5
-	print "Halo size", R_h(z)
+	z = 2.e6
+	#r_rho = lambda rho_chi,z:((3. * f_chi * M_h(z)) / (16. * np.pi * (R_h(z)**(3./4)) * (rho_chi)))**(4./9)
+	print "rho_max", rho_max(mDM, sigma_v, z)
+	print "f_chi", f_chi
+	print "M_h", M_h(z)
+	print "R_h", R_h(z)
+	print "r_cut", r_rho(rho_max(mDM, sigma_v, z), z)
+	print "ndm_0_z", ndm_0(mDM, z)
+	print "avg_n_ucmh_squared(mDM, sigma_v, z, n)", avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	#print "Sigma_ucmh(z)", Sigma_ucmh(n, z)
+	#print "avg_n_ucmh_squared(mDM, sigma_v, z, n)", avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	#print "Halo size", R_h(z)
 	#print "n_ucmh",n_ucmh(z)
-	print avg_n_ucmh_squared(mDM, sigma_v, z)
+	#print avg_n_ucmh_squared(mDM, sigma_v, z)
 	#n_z = lambda r: rho_chi(mDM, sigma_v,r,z)/mDM
 	#print avg_n_ucmh_squared(mDM, sigma_v, 10**5)
 
