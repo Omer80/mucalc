@@ -13,6 +13,8 @@ from scipy.interpolate import interp1d
 import math
 import argparse
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+from matplotlib import cm
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
@@ -111,28 +113,51 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n=1., with_ucmh = False):
 	
 
 def main():
-	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
-	f_gamma = 1.
-	mDM = 10.
-	z = 2.e6
+	#sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
+	#f_gamma = 1.
+	#mDM = 10.
+	#z = 2.e6
 	#print "ndm_0(mDM, z)",ndm_0(mDM, z)
 	#print "ndm_squared_z =", (ndm_0(mDM, z)**2)
 	#print "ndm with ucmh =", ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, 1.25)
-	ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
-	ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	#ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
+	#ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
 	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)
 	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)
 	#print "mu", wimp_mucalc(mDM, sigma_v, f_gamma)
 	#plot(y,100, 2.5e6)
-	plot_density_squared(ndm_0_n, ndm_ucmh_n, 1., 1.30)
+	#plot_density_squared(ndm_0_n, ndm_ucmh_n, 1., 1.30)
+	
+	plot_mu_to_mDM_spectral_index()
+	
+# Plotting functions definitions
+def plot_mu_to_mDM_spectral_index():
+	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
+	f_gamma = 1.
+	z_i = 2.0e6
+	z_min = 5.0e4
+	with_ucmh = True
+	
+	mDM = np.logspace(1,4,100)
+	n   = np.linspace(1.,1.3,100)
+	mDM, n = np.meshgrid(mDM, n)
+	mu_mDM_n = mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh)
+	
+	plt.plot_surface(mDM, n, mu_mDM_n, rstride=1, cstride=1, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+	
+	plt.show() 
+	
+	
 	
 def plot_density_squared(function1, function2 , min_x, max_x):
 	t = np.linspace(min_x, max_x,100)
 	s1 = function1(t)
 	s2 = function2(t)
+	s3 = function1(t) + function2(t)
 	plt.yscale('log')
-	plt.plot(t, s1, 'b-', lw=3, label = r"Only normal DM $density^2$")
-	plt.plot(t, s2, 'r-', lw=3, label = r"$Density^2$ with UCMH")
+	plt.plot(t, s1, 'b--', lw=1, label = r"Only normal DM $density^2$")
+	plt.plot(t, s2, 'r--', lw=1, label = r"$Density^2$ only UCMH")
+	plt.plot(t, s3, 'g-', lw=2, label = r"$Density^2$ normal plus UCMH")
 	
 	plt.xlabel(r'spectral index $n$')
 	plt.ylabel(r'$< {density^{2}} > $')
