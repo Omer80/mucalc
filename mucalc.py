@@ -11,7 +11,6 @@ from astropy import cosmology
 from scipy import integrate
 from scipy.interpolate import interp1d
 import math
-import argparse
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from matplotlib import cm
@@ -25,6 +24,7 @@ cosmology.core.set_current(cosmology.Planck13)
 
 from mucalc_constants import *
 import ucmh
+import argparse
 
 def wimp_mucalc(mDM, sigma_v, f_gamma,n=1., with_ucmh = False):
 	z_i = 2.0e6
@@ -195,10 +195,12 @@ def plot_energy_injection(function, min_x, max_x):
 # Parser setup
 parser = argparse.ArgumentParser(description='blablabla.')
 
-parser.add_argument('-d','--print_density_squared_plot', help="Print plot", action='store_true')
+parser.add_argument('-d','--print_density_squared_plot', 
+					help="Print plot", action='store_true')
 
 
-parser.add_argument('-e','--print_energy_injection',nargs='+', help="Print plot")
+parser.add_argument('-e','--print_energy_injection',nargs='+', 
+					help="Print plot")
 
 args = parser.parse_args()	
 if __name__ == "__main__":

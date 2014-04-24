@@ -13,7 +13,6 @@ from scipy import special
 from scipy.stats import norm
 from mucalc_constants import *
 import decimal
-import argparse
 import matplotlib.pyplot as plt
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
@@ -168,9 +167,6 @@ def main():
 	#n_z = lambda r: rho_chi(mDM, sigma_v,r,z)/mDM
 	#print avg_n_ucmh_squared(mDM, sigma_v, 10**5)
 
-# Parser setup
-parser = argparse.ArgumentParser(description='Process some integers.')
 
-args = parser.parse_args()	
 if __name__ == "__main__":
 	main()
