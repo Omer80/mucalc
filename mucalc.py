@@ -193,15 +193,19 @@ def plot_energy_injection(function, min_x, max_x):
 
 
 # Parser setup
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description='blablabla.')
 
-parser.add_argument('-d','--print_density_squared_plot', help="Prints the density squared of dark matter, without UCMH and with",
-					action='store_true')
+parser.add_argument('-d','--print_density_squared_plot', help="Print plot", action='store_true')
+
+
+parser.add_argument('-e','--print_energy_injection',nargs='+', help="Print plot")
 
 args = parser.parse_args()	
 if __name__ == "__main__":
 	if args.print_density_squared_plot:
 		plot_density_squared()
+	if args.print_energy_injection:
+		# Add option to give specific mass and redshift range
+		plot_energy_injection(function, min_x, max_x)				
 	else:
-		plot_density_squared()
 		main()
