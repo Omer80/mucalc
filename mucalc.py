@@ -128,7 +128,8 @@ def main():
 	#plot(y,100, 2.5e6)
 	#plot_density_squared(ndm_0_n, ndm_ucmh_n, 1., 1.30)
 	
-	plot_mu_to_mDM_spectral_index()
+	#plot_mu_to_mDM_spectral_index()
+	pass
 	
 # Plotting functions definitions
 def plot_mu_to_mDM_spectral_index():
@@ -141,19 +142,29 @@ def plot_mu_to_mDM_spectral_index():
 	mDM = np.logspace(1,4,100)
 	n   = np.linspace(1.,1.3,100)
 	mDM, n = np.meshgrid(mDM, n)
-	mu_mDM_n = mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh)
+	print mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh)
+	#mu_mDM_n = mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh)
 	
-	plt.plot_surface(mDM, n, mu_mDM_n, rstride=1, cstride=1, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+	#plt.plot_surface(mDM, n, mu_mDM_n, rstride=1, cstride=1, cmap=cm.coolwarm,linewidth=0, antialiased=False)
 	
-	plt.show() 
+	#plt.show() 
 	
 	
 	
-def plot_density_squared(function1, function2 , min_x, max_x):
-	t = np.linspace(min_x, max_x,100)
-	s1 = function1(t)
-	s2 = function2(t)
-	s3 = function1(t) + function2(t)
+def plot_density_squared():
+	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
+	f_gamma = 1.
+	mDM = 10.
+	z = 2.e6
+	ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
+	ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	n_min = 1.
+	n_max = 1.30
+
+	t = np.linspace(n_min, n_max,100)
+	s1 = ndm_0_n(t)
+	s2 = ndm_ucmh_n(t)
+	s3 = ndm_0_n(t) + ndm_ucmh_n(t)
 	plt.yscale('log')
 	plt.plot(t, s1, 'b--', lw=1, label = r"Only normal DM $density^2$")
 	plt.plot(t, s2, 'r--', lw=1, label = r"$Density^2$ only UCMH")
@@ -184,6 +195,13 @@ def plot_energy_injection(function, min_x, max_x):
 # Parser setup
 parser = argparse.ArgumentParser(description='Process some integers.')
 
+parser.add_argument('-d','--print_density_squared_plot', help="Prints the density squared of dark matter, without UCMH and with",
+					action='store_true')
+
 args = parser.parse_args()	
 if __name__ == "__main__":
-	main()
+	if args.print_density_squared_plot:
+		plot_density_squared()
+	else:
+		plot_density_squared()
+		main()
