@@ -25,15 +25,17 @@ cosmology.core.set_current(cosmology.Planck13)
 from mucalc_constants import *
 import ucmh
 import argparse
+from model import Wimp_model
 
-def wimp_mucalc(mDM, sigma_v, f_gamma,n=1., with_ucmh = False):
+def wimp_mucalc(WIMP_model):
 	z_i = 2.0e6
 	z_min = 5.0e4
-	mDM = (mDM * const.GeV)/(const.c**2)
-	return mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh)
+	return mu_0(z_i, z_min,WIMP_model.f_gamma, WIMP_model.mDM, 
+	            WIMP_model.sigma_v,WIMP_model.spectral_index, WIMP_model.with_ucmh)
 	
 
 H_z = lambda z : cosmology.H(z).to(1/u.s).value
+
 
 def ndm_0(mDM, z):
 	"""(float, float) -> float
@@ -83,11 +85,10 @@ def tau(z):
 	tau_precise = ((((1+z)/(1+z_dC_prime))**3) + (((1+z)/(1+z_br_prime))**0.5))
 	return 1.007 * (tau_1+tau_2) + tau_precise
 
-def mu(z): # I have problem in interpreting this equation from the paper, there must be mistake here..
+def mu(z):
 	"""
 	Chemical potential calculation from eq. (3.2) in arXiv: 1203.2601v2
 	"""
-	# What is mu_c and x_e ??
 	mu_c = 0.
 	x_e = 1.
 	first_part = 7.43e-5 * ((1 + z)/(2e6))
@@ -102,7 +103,8 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh):
 	"""
 	#first_part = mu(z_i) * np.math.exp(-tau(z_i))
 	# With dN/dz
-	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)-(4/3)*(dNdz(z))) * math.exp(-tau(z))) 
+	#integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz(z)-(4/3)*(dNdz(z))) * math.exp(-tau(z)))
+	
 	# Without dN/dz
 	dQdz_z = lambda z : dQdz(f_gamma, mDM, sigma_v, z,n, with_ucmh)
 	integrand = lambda z: ((1/((1+z)*H_z(z)))* (dQdz_z(z)) * np.exp(-tau(z)))
@@ -111,56 +113,42 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh):
 	return second_part
 	
 
-def main():
-	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
-	f_gamma = 1.
-	mDM = 10.
-	#z = 2.e6
-	#print "ndm_0(mDM, z)",ndm_0(mDM, z)
-	#print "ndm_squared_z =", (ndm_0(mDM, z)**2)
-	#print "ndm with ucmh =", ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, 1.25)
-	#ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
-	#ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
-	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = False)
-	#print "ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)",ndm_squared(mDM, sigma_v, z,n=1., with_ucmh = True)
-	#print "mu", wimp_mucalc(mDM, sigma_v, f_gamma)
-	#print "mu with ucmh", wimp_mucalc(mDM, sigma_v, f_gamma,1.3, True)
-	#plot(y,100, 2.5e6)
-	#plot_density_squared(ndm_0_n, ndm_ucmh_n, 1., 1.30)
-	
-	plot_mu_to_mDM_spectral_index(sigma_v,f_gamma,mDM)
-	
+def main(args):
+	WIMP = Wimp_model(10.,1.,3.0e-27)
+	if args.print_density_squared_plot:
+		plot_density_squared(WIMP)
+	if args.print_energy_injection:
+		mDM = float(args.print_energy_injection[0])
+		WIMP.mDM = mDM
+		plot_energy_injection(WIMP)	
+	if args.print_mu_to_n:
+		plot_mu_to_mDM_spectral_index(WIMP)
+	else:
+		print wimp_mucalc(WIMP)
+		
 	
 # Plotting functions definitions
-def plot_mu_to_mDM_spectral_index(sigma_v,f_gamma,mDM):
-	with_ucmh = True
-	n = np.linspace(1.,10,100)
-	#print 'n',type(n),'n shape',n.shape,'n dtype',n.dtype
-	mu_n = lambda n: wimp_mucalc(mDM, sigma_v, f_gamma,n, with_ucmh)
-	#mu = mu_n(1.)
-	#print mu
-	#print 'mu',type(mu),'mu shape', mu.shape,'mu dtype',mu.dtype
+def plot_mu_to_mDM_spectral_index(model):
+	model.with_ucmh = True
+	model.n = np.linspace(1.,10,100)
+	mu_n = lambda n: wimp_mucalc(model)
 	mu = []
 	for nn in n:
 		mu.append(mu_n(nn))
 	mu = np.asarray(mu)
-	#print 'mu',type(mu),'mu shape', mu.shape,'mu dtype',mu.dtype
 	plt.yscale('log')
 	plt.plot(n, mu, 'b-', lw=1, label = r"$\mu$-type distortion")
+	plt.xlabel(r'$n$')
+	plt.ylabel(r'$ | \mu |$')
 	plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
 	plt.legend(loc = 4)
 	plt.grid(True, which="both")
 	plt.show()
-	
-	
-	
-def plot_density_squared():
-	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
-	f_gamma = 1.
-	mDM = (10. * const.GeV)/(const.c**2)
+		
+def plot_density_squared(model):
 	z = 2.e6
-	ndm_0_n = lambda n: (ndm_0(mDM, z)**2) * (n**0)
-	ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	ndm_0_n = lambda n: (ndm_0(model.mDM, z)**2) * (n**0)
+	ndm_ucmh_n = lambda n: ucmh.avg_n_ucmh_squared(model.mDM, model.sigma_v, z, n)
 	n_min = 1.
 	n_max = 1.30
 
@@ -180,19 +168,15 @@ def plot_density_squared():
 	plt.grid(True, which="both")
 	plt.show()	
 
-def plot_energy_injection(mDM):
-	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2)) 
-	f_gamma = 1.
-	mDM = (mDM * const.GeV)/(const.c**2)
+def plot_energy_injection(model):
 	min_z = 100
 	max_z = 2.5e6
 	t = np.logspace(np.log10(min_z), np.log10(max_z),100000)
 	n = 1.
-	function = lambda z: dQdz(f_gamma, mDM, sigma_v, z,n, with_ucmh)*(np.exp(-tau(z))/H_z(z))
+	function = lambda z: dQdz(model.f_gamma, model.mDM, model.sigma_v, z,model.spectral_index, model.with_ucmh)*(np.exp(-tau(z))/H_z(z))
 	with_ucmh = False
 	s = function(t)
 	plt.loglog(t, s, 'b-', lw=3)
-	
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$(1+z)G d \varepsilon / dz$')
 	plt.title(r'Energy injection from dark matter annihilation')
@@ -218,12 +202,4 @@ parser.add_argument('-e','--print_energy_injection',nargs='+',
 
 args = parser.parse_args()	
 if __name__ == "__main__":
-	if args.print_density_squared_plot:
-		plot_density_squared()
-	if args.print_energy_injection:
-		# Add option to give specific mass and redshift range
-		mDM = float(args.print_energy_injection[0])
-		#print type(mDM)
-		plot_energy_injection(mDM)				
-	else:
-		main()
+	main(args)
