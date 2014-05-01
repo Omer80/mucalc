@@ -27,15 +27,13 @@ import ucmh
 import argparse
 from model import Wimp_model
 
-def wimp_mucalc(WIMP_model):
+def wimp_mucalc(WIMP_model,spectral_index = 1., with_ucmh = True):
 	z_i = 2.0e6
 	z_min = 5.0e4
 	return mu_0(z_i, z_min,WIMP_model.f_gamma, WIMP_model.mDM, 
-	            WIMP_model.sigma_v,WIMP_model.spectral_index, WIMP_model.with_ucmh)
+	            WIMP_model.sigma_v,spectral_index, with_ucmh)
 	
-
 H_z = lambda z : cosmology.H(z).to(1/u.s).value
-
 
 def ndm_0(mDM, z):
 	"""(float, float) -> float
@@ -112,15 +110,18 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh):
 	#return first_part+second_part
 	return second_part
 	
-
 def main(args):
 	WIMP = Wimp_model(10.,1.,3.0e-27)
+	z = 2.e6
 	if args.print_density_squared_plot:
 		plot_density_squared(WIMP)
 	if args.print_energy_injection:
-		mDM = float(args.print_energy_injection[0])
-		WIMP.mDM = mDM
-		plot_energy_injection(WIMP)	
+		WIMP.mDM = (float(args.print_energy_injection[0]) * const.GeV)/(const.c**2)
+		if args.spectral_index:
+			spectral_index = float(args.spectral_index[0])
+			plot_energy_injection(WIMP, spectral_index, True)
+		else:
+			plot_energy_injection(WIMP)
 	if args.print_mu_to_n:
 		plot_mu_to_mDM_spectral_index(WIMP)
 	else:
@@ -129,15 +130,15 @@ def main(args):
 	
 # Plotting functions definitions
 def plot_mu_to_mDM_spectral_index(model):
-	model.with_ucmh = True
-	model.n = np.linspace(1.,10,100)
-	mu_n = lambda n: wimp_mucalc(model)
+	with_ucmh = True
+	n_range = np.linspace(1.,1.4,100)
+	mu_n = lambda spectral_index: wimp_mucalc(model,spectral_index, with_ucmh)
 	mu = []
-	for nn in n:
-		mu.append(mu_n(nn))
+	for n in n_range:
+		mu.append(mu_n(n))
 	mu = np.asarray(mu)
 	plt.yscale('log')
-	plt.plot(n, mu, 'b-', lw=1, label = r"$\mu$-type distortion")
+	plt.plot(n_range, mu, 'b-', lw=1, label = r"$\mu$-type distortion")
 	plt.xlabel(r'$n$')
 	plt.ylabel(r'$ | \mu |$')
 	plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
@@ -168,13 +169,11 @@ def plot_density_squared(model):
 	plt.grid(True, which="both")
 	plt.show()	
 
-def plot_energy_injection(model):
+def plot_energy_injection(model, spectral_index = 1., with_ucmh = False):
 	min_z = 100
 	max_z = 2.5e6
-	t = np.logspace(np.log10(min_z), np.log10(max_z),100000)
-	n = 1.
-	function = lambda z: dQdz(model.f_gamma, model.mDM, model.sigma_v, z,model.spectral_index, model.with_ucmh)*(np.exp(-tau(z))/H_z(z))
-	with_ucmh = False
+	t = np.logspace(np.log10(min_z), np.log10(max_z),1000)
+	function = lambda z: dQdz(model.f_gamma, model.mDM, model.sigma_v, z,spectral_index, with_ucmh)*(np.exp(-tau(z))/H_z(z))
 	s = function(t)
 	plt.loglog(t, s, 'b-', lw=3)
 	plt.xlabel(r'$z$')
@@ -188,7 +187,7 @@ def plot_energy_injection(model):
 
 
 # Parser setup
-parser = argparse.ArgumentParser(description='blablabla.')
+parser = argparse.ArgumentParser(description='Passing some arguments')
 
 parser.add_argument('-d','--print_density_squared_plot', 
 					help="Print plot", action='store_true')
@@ -199,7 +198,9 @@ parser.add_argument('-m','--print_mu_to_n',
 					
 parser.add_argument('-e','--print_energy_injection',nargs='+', 
 					help="Print energy injection plot for a WIMP with the given mass in GeV")
-
+parser.add_argument('-n','--spectral_index',nargs='+', 
+					help="Setting spectral index n")
+					
 args = parser.parse_args()	
 if __name__ == "__main__":
 	main(args)

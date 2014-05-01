@@ -69,7 +69,7 @@ def M_h(z):
 	equation (1) at arXiv:0908.4082v5
 	'''
 	M_h = delta_m * ((1. + z_eq)/(1. + z)) # delta_m is in solMass
-	return M_h.to(u.g).value # M_h is in solMass !
+	return M_h.to(u.g).value 
 
 solarmass = 1. * u.solMass
 	
@@ -118,31 +118,30 @@ def Sigma_ucmh(n, z):
 
 ndm_0 = lambda mDM, z: (const.Rho_cr * const.Omega_cdm / mDM) * ((1+z)**3)
 
-n_ucmh = lambda n, z: (const.Rho_cr * Sigma_ucmh(n, z)) / M_h(z)
+n_ucmh = lambda n, z: (cosmology.critical_density(z).value * Sigma_ucmh(n, z)) / M_h(z)
 
 def avg_n_ucmh_squared(mDM, sigma_v, z, n):
 	'''
 	'''
+	#print "input", mDM, sigma_v, z, n
 	r_cut = r_rho(rho_max(mDM, sigma_v,z),z)
+	#print "r_cut", r_cut
 	n_max_z = rho_max(mDM,sigma_v, z)/mDM
+	#print "n_max_z",n_max_z
 	ndm_0_z = ndm_0(mDM, z)
 	R_h_z = R_h(z)
+	#print "R_h_z",R_h_z
 	first_part = ((r_cut**3.)/3.)* (n_max_z**2.)
-	f = (3. * f_chi * M_h(z)) / (mDM * 16. * np.pi * (R_h_z**(3./4)))
-	second_part = (2./3) * (f**2) * (1./(r_cut**(3./2)))
-	avg_n_ucmh_squared_z = 4. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
+	#print "n_ucmh(n,z)",n_ucmh(n,z)
+	#print first_part
+	f = (3. * f_chi * M_h(z)) / ( 16. * np.pi * (R_h_z**(3./4)))
+	second_part = (2./3) * ((f/mDM)**2) * (1./(r_cut**(3./2)))
+	#print second_part
+	avg_n_ucmh_squared_z = 4. *np.pi * n_ucmh(n,z) *(first_part +  second_part)
 	
 	# Adding cross term
 	first_part = ((r_cut**3.)/3.)* (n_max_z* ndm_0_z)
-	# Numerical integration of second part
-	#integrand = lambda r: 	ndm_0_z * f * (1./(r**(9./4))) * r**2.
-	#second_part = integrate.romberg(integrand, r_cut, R_h_z, divmax = 20)
-	# Analytical integration of second part
-	second_part = (4./3) * f * ndm_0_z * (R_h_z**(3./4) - r_cut**(3./4))
-	#print avg_n_ucmh_squared_z
-	#print 8. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
-	#print "second part numerical", second_part
-	#print "second part analytical", second_part_analytical
+	second_part = (4./3) * (f/mDM) * ndm_0_z * (R_h_z**(3./4) - r_cut**(3./4))
 	avg_n_ucmh_squared_z = avg_n_ucmh_squared_z + 8. * n_ucmh(n,z) *np.pi*(first_part +  second_part)
 	return avg_n_ucmh_squared_z
 
@@ -151,14 +150,18 @@ def main():
 	sigma_v = 3.0e-27 / (const.Omega_cdm * (const.h0**2))
 	mDM = (10 * const.GeV)/(const.c**2)
 	z = 2.e6
+	n = 1.3
 	#r_rho = lambda rho_chi,z:((3. * f_chi * M_h(z)) / (16. * np.pi * (R_h(z)**(3./4)) * (rho_chi)))**(4./9)
 	print "rho_max", rho_max(mDM, sigma_v, z)
 	print "f_chi", f_chi
 	print "M_h", M_h(z)
 	print "R_h", R_h(z)
 	print "r_cut", r_rho(rho_max(mDM, sigma_v, z), z)
-	print "ndm_0_z", ndm_0(mDM, z)
-	print "avg_n_ucmh_squared(mDM, sigma_v, z, n)", avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	print "parameters", sigma_v, mDM, z, n
+	ndm_0_sq_n = lambda n: (ndm_0(mDM, z)**2)
+	ndm_ucmh_sq_n = lambda n: avg_n_ucmh_squared(mDM, sigma_v, z, n)
+	print "ndm_0_sq_n(1.3)",ndm_0_sq_n(1.3)
+	print "ndm_ucmh_sq_n(1.3)",ndm_ucmh_sq_n(1.3)
 	#print "Sigma_ucmh(z)", Sigma_ucmh(n, z)
 	#print "avg_n_ucmh_squared(mDM, sigma_v, z, n)", avg_n_ucmh_squared(mDM, sigma_v, z, n)
 	#print "Halo size", R_h(z)

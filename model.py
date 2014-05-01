@@ -12,9 +12,10 @@ n - spectral index
 from mucalc_constants import *
 
 class Wimp_model(object):
-	def __init__(self, mDM, f_gamma, sigma_v, spectral_index = 1. , with_ucmh = False):
+	def __init__(self, mDM, f_gamma, sigma_v):
 		self.mDM = ( mDM * const.GeV)/(const.c**2)
 		self.f_gamma = f_gamma
 		self.sigma_v = sigma_v / (const.Omega_cdm * (const.h0**2)) 
-		self.spectral_index = spectral_index
-		self.with_ucmh = with_ucmh
+	def __str__(self):
+		print_WIMP = "Wimp of mass {0} with f_gamma {1} and cross-section {2}".format(str(self.mDM),str(self.f_gamma), str(self.sigma_v))
+		return print_WIMP
