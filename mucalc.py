@@ -27,7 +27,7 @@ import ucmh
 import argparse
 from model import Wimp_model
 
-def wimp_mucalc(WIMP_model,spectral_index = 1., with_ucmh = True):
+def wimp_mucalc(WIMP_model,spectral_index = 1., with_ucmh = False):
 	z_i = 2.0e6
 	z_min = 5.0e4
 	return mu_0(z_i, z_min,WIMP_model.f_gamma, WIMP_model.mDM, 
@@ -110,6 +110,10 @@ def mu_0(z_i, z_min,f_gamma, mDM, sigma_v,n, with_ucmh):
 	#return first_part+second_part
 	return second_part
 	
+def mu0_n_mDM(mDM, spectral_index):
+	WIMP = Wimp_model(mDM,1.,3.0e-27)
+	return wimp_mucalc(WIMP,spectral_index, with_ucmh = True)
+
 def main(args):
 	WIMP = Wimp_model(10.,1.,3.0e-27)
 	z = 2.e6
@@ -123,26 +127,46 @@ def main(args):
 		else:
 			plot_energy_injection(WIMP)
 	if args.print_mu_to_n:
-		plot_mu_to_mDM_spectral_index(WIMP)
+		plot_mu_to_spectral_index(WIMP)
+	if args.print_contours_mu_to_n_mDM:
+		plot_mu_contours()
 	else:
 		print wimp_mucalc(WIMP)
 		
 	
 # Plotting functions definitions
-def plot_mu_to_mDM_spectral_index(model):
+def plot_mu_to_spectral_index(model):
 	with_ucmh = True
-	n_range = np.linspace(1.,1.4,100)
+	n_range = np.linspace(1.,1.3,100)
 	mu_n = lambda spectral_index: wimp_mucalc(model,spectral_index, with_ucmh)
-	mu = []
+	# Calculation for electron positron annihilation
+	#ucmh.T_phase_transition = ucmh.T_ee
+	mu_ee = []
 	for n in n_range:
-		mu.append(mu_n(n))
-	mu = np.asarray(mu)
+		mu_ee.append(mu_n(n))
+	mu_ee = np.asarray(mu_ee)
+	# Calculation for QCD phase transition
+	ucmh.T_phase_transition = ucmh.T_QCD
+	mu_QCD = []
+	for n in n_range:
+		mu_QCD.append(mu_n(n))
+	mu_QCD = np.asarray(mu_QCD)
+	# Calculation for electroweak phase transition
+	ucmh.T_phase_transition = ucmh.T_EW
+	mu_EW = []
+	for n in n_range:
+		mu_EW.append(mu_n(n))
+	mu_EW = np.asarray(mu_EW)
+	
 	plt.yscale('log')
-	plt.plot(n_range, mu, 'b-', lw=1, label = r"$\mu$-type distortion")
+	plt.plot(n_range, mu_ee, 'b',n_range, mu_QCD, 'g',n_range, mu_EW, 'm')
+	#plt.plot(n_range, mu_ee, 'b', lw=1, label = r"$e^+ e^-$ annihilation epoch "),n_range, mu_QCD, 'g', lw=1, label = r"QCD phase transition",n_range, mu_EW, 'm', lw=1, label = r"Electroweak phase transition")
 	plt.xlabel(r'$n$')
 	plt.ylabel(r'$ | \mu |$')
 	plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
 	plt.legend(loc = 4)
+	plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
+	plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
 	plt.grid(True, which="both")
 	plt.show()
 		
@@ -166,7 +190,7 @@ def plot_density_squared(model):
 	plt.ylabel(r'$< {density^{2}} > $')
 	plt.title(r'Change of average of $density^2$ as function of spectral index')
 	plt.legend(loc = 4)
-	plt.grid(True, which="both")
+	#plt.grid(True, which="both")
 	plt.show()	
 
 def plot_energy_injection(model, spectral_index = 1., with_ucmh = False):
@@ -179,13 +203,39 @@ def plot_energy_injection(model, spectral_index = 1., with_ucmh = False):
 	plt.xlabel(r'$z$')
 	plt.ylabel(r'$(1+z)G d \varepsilon / dz$')
 	plt.title(r'Energy injection from dark matter annihilation')
-	plt.grid(True, which="both")
+	#plt.grid(True, which="both")
 	plt.show()
 
+def plot_mu_contours():
+	n = int(np.sqrt(100))
+	print "Processing things you know..",
+	import matplotlib
+	import matplotlib.cm as cm
+	import matplotlib.mlab as mlab
+	matplotlib.rcParams['xtick.direction'] = 'out'
+	matplotlib.rcParams['ytick.direction'] = 'out'
+	n_range = np.linspace(1.,1.4,n)
+	mDM_range = np.logspace(1,6,n)
+	X = n_range
+	Y = mDM_range
+	mu = []
+	for mDM in Y:
+		for n in X:
+			print ".",
+			mu.append(np.log10(mu0_n_mDM(mDM,n)))
+	X, Y = np.meshgrid(n_range, mDM_range)
+	mu = np.asarray(mu).reshape(n,n)
+	plt.figure()
+	CS = plt.contour(X,Y, mu)
+	plt.clabel(CS, inline = 1, fontsize = 10)
+	CB = plt.colorbar(CS, shrink=0.8, extend='both')
+	plt.yscale('log')
+	plt.xlabel(r'Spectral Index $n$')
+	plt.ylabel(r'Wimp mass in $GeV$')
+	plt.title(r'Contour of $\log_{10}(\mu)$')
+	plt.show()
 	
-
-
-
+	
 # Parser setup
 parser = argparse.ArgumentParser(description='Passing some arguments')
 
@@ -195,11 +245,16 @@ parser.add_argument('-d','--print_density_squared_plot',
 parser.add_argument('-m','--print_mu_to_n', 
 					help="Print plot of \mu type distortion for range of spectral index", 
 					action='store_true')
+
+parser.add_argument('-c','--print_contours_mu_to_n_mDM', 
+					help="Print contour maps of mu distortions as function of n and mDM", 
+					action='store_true')
 					
 parser.add_argument('-e','--print_energy_injection',nargs='+', 
 					help="Print energy injection plot for a WIMP with the given mass in GeV")
 parser.add_argument('-n','--spectral_index',nargs='+', 
 					help="Setting spectral index n")
+
 					
 args = parser.parse_args()	
 if __name__ == "__main__":
