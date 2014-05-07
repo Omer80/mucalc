@@ -131,7 +131,17 @@ def main(args):
 	if args.print_contours_mu_to_n_mDM:
 		plot_mu_contours()
 	else:
-		print wimp_mucalc(WIMP)
+		print "T_phase_transition", ucmh.T_phase_transition
+		print "mu0 with n=1",wimp_mucalc(WIMP)
+		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
+		ucmh.T_phase_transition = ucmh.T_QCD
+		ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
+		print "T_phase_transition", ucmh.T_phase_transition
+		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
+		ucmh.T_phase_transition = ucmh.T_EW
+		ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
+		print "T_phase_transition", ucmh.T_phase_transition	
+		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)	
 		
 	
 # Plotting functions definitions
@@ -147,20 +157,21 @@ def plot_mu_to_spectral_index(model):
 	mu_ee = np.asarray(mu_ee)
 	# Calculation for QCD phase transition
 	ucmh.T_phase_transition = ucmh.T_QCD
+	ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
 	mu_QCD = []
 	for n in n_range:
 		mu_QCD.append(mu_n(n))
 	mu_QCD = np.asarray(mu_QCD)
 	# Calculation for electroweak phase transition
 	ucmh.T_phase_transition = ucmh.T_EW
+	ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
 	mu_EW = []
 	for n in n_range:
 		mu_EW.append(mu_n(n))
 	mu_EW = np.asarray(mu_EW)
 	
 	plt.yscale('log')
-	plt.plot(n_range, mu_ee, 'b',n_range, mu_QCD, 'g',n_range, mu_EW, 'm')
-	#plt.plot(n_range, mu_ee, 'b', lw=1, label = r"$e^+ e^-$ annihilation epoch "),n_range, mu_QCD, 'g', lw=1, label = r"QCD phase transition",n_range, mu_EW, 'm', lw=1, label = r"Electroweak phase transition")
+	plt.plot(n_range, mu_ee, 'b', n_range, mu_QCD, 'g',n_range, mu_EW, 'm')
 	plt.xlabel(r'$n$')
 	plt.ylabel(r'$ | \mu |$')
 	plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
@@ -168,6 +179,36 @@ def plot_mu_to_spectral_index(model):
 	plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
 	plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
 	plt.grid(True, which="both")
+	#plt.figure(1)
+	#plt.yscale('log')
+	#plt.plot(n_range, mu_ee, 'b', lw=1, label = r"$e^+ e^-$ annihilation epoch ")
+	#plt.xlabel(r'$n$')
+	#plt.ylabel(r'$ | \mu |$')
+	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
+	#plt.legend(loc = 4)
+	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
+	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
+	##plt.grid(True, which="both")
+	#plt.figure(2)
+	#plt.yscale('log')
+	#plt.plot(n_range, mu_QCD, 'g', lw=1, label = r"QCD phase transition")
+	#plt.xlabel(r'$n$')
+	#plt.ylabel(r'$ | \mu |$')
+	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
+	#plt.legend(loc = 4)
+	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
+	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
+	##plt.grid(True, which="both")
+	#plt.figure(3)
+	#plt.yscale('log')
+	#plt.plot(n_range, mu_EW, 'm', lw=1, label = r"Electroweak phase transition")
+	#plt.xlabel(r'$n$')
+	#plt.ylabel(r'$ | \mu |$')
+	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
+	#plt.legend(loc = 4)
+	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
+	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
+	##plt.grid(True, which="both")
 	plt.show()
 		
 def plot_density_squared(model):
