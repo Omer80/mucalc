@@ -58,3 +58,7 @@ const.z_eps = 3.67e5
 const.eps = 0.0151
 const.z_dC_prime = 7.11e6
 const.z_br_prime = 5.41e11
+
+# Rate coefficient calculations
+const.g_dC = 1.005
+const.g_br = 2.99
