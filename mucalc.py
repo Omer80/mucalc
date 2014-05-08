@@ -175,7 +175,7 @@ def plot_mu_to_spectral_index(model):
 	plt.xlabel(r'$n$')
 	plt.ylabel(r'$ | \mu |$')
 	plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
-	plt.legend(loc = 4)
+	plt.legend({r"$e^+ e^-$ annihilation epoch ",r"QCD phase transition",r"Electroweak phase transition"},loc = 4)
 	plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
 	plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
 	plt.grid(True, which="both")
@@ -248,15 +248,14 @@ def plot_energy_injection(model, spectral_index = 1., with_ucmh = False):
 	plt.show()
 
 def plot_mu_contours():
-	n = int(np.sqrt(100))
 	print "Processing things you know..",
 	import matplotlib
 	import matplotlib.cm as cm
 	import matplotlib.mlab as mlab
 	matplotlib.rcParams['xtick.direction'] = 'out'
 	matplotlib.rcParams['ytick.direction'] = 'out'
-	n_range = np.linspace(1.,1.4,n)
-	mDM_range = np.logspace(1,6,n)
+	n_range = np.linspace(1.,1.25,100)
+	mDM_range = np.logspace(1,6,100)
 	X = n_range
 	Y = mDM_range
 	mu = []
@@ -265,10 +264,10 @@ def plot_mu_contours():
 			print ".",
 			mu.append(np.log10(mu0_n_mDM(mDM,n)))
 	X, Y = np.meshgrid(n_range, mDM_range)
-	mu = np.asarray(mu).reshape(n,n)
+	mu = np.asarray(mu).reshape(100,100)
 	plt.figure()
-	CS = plt.contour(X,Y, mu)
-	plt.clabel(CS, inline = 1, fontsize = 10)
+	CS = plt.contourf(X,Y, mu)
+	plt.clabel(CS, inline = 1, fontsize = 3)
 	CB = plt.colorbar(CS, shrink=0.8, extend='both')
 	plt.yscale('log')
 	plt.xlabel(r'Spectral Index $n$')
