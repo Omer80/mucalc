@@ -114,6 +114,16 @@ def mu0_n_mDM(mDM, spectral_index):
 	WIMP = Wimp_model(mDM,1.,3.0e-27)
 	return wimp_mucalc(WIMP,spectral_index, with_ucmh = True)
 
+def mu_detection_levels(mDM, spectral_index):
+	WIMP = Wimp_model(mDM,1.,3.0e-27)
+	mu = wimp_mucalc(WIMP,spectral_index, with_ucmh = True)
+	detection_level = 0
+	if mu > 5e-8: # PIXIE level of detection
+		detection_level = 1
+	if mu > 9e-5: # COBE level of detection
+		detection_level = 2
+	return detection_level
+
 def main(args):
 	WIMP = Wimp_model(10.,1.,3.0e-27)
 	z = 2.e6
@@ -130,18 +140,18 @@ def main(args):
 		plot_mu_to_spectral_index(WIMP)
 	if args.print_contours_mu_to_n_mDM:
 		plot_mu_contours()
-	else:
-		print "T_phase_transition", ucmh.T_phase_transition
-		print "mu0 with n=1",wimp_mucalc(WIMP)
-		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
-		ucmh.T_phase_transition = ucmh.T_QCD
-		ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
-		print "T_phase_transition", ucmh.T_phase_transition
-		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
-		ucmh.T_phase_transition = ucmh.T_EW
-		ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
-		print "T_phase_transition", ucmh.T_phase_transition	
-		print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)	
+	#else:
+		#print "T_phase_transition", ucmh.T_phase_transition
+		#print "mu0 with n=1",wimp_mucalc(WIMP)
+		#print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
+		#ucmh.T_phase_transition = ucmh.T_QCD
+		#ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
+		#print "T_phase_transition", ucmh.T_phase_transition
+		#print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)
+		#ucmh.T_phase_transition = ucmh.T_EW
+		#ucmh.M_H_z_X = ucmh.M_H(ucmh.T_phase_transition.value)
+		#print "T_phase_transition", ucmh.T_phase_transition	
+		#print "mu0 with n=1.3",wimp_mucalc(WIMP,1.3,True)	
 		
 	
 # Plotting functions definitions
@@ -262,40 +272,45 @@ def plot_mu_contours():
 	for mDM in Y:
 		for n in X:
 			print ".",
-			mu.append(np.log10(mu0_n_mDM(mDM,n)))
+			#mu.append(np.log10(mu0_n_mDM(mDM,n)))
+			mu.append(mu_detection_levels(mDM, n))
 	X, Y = np.meshgrid(n_range, mDM_range)
 	mu = np.asarray(mu).reshape(100,100)
 	plt.figure()
 	CS = plt.contourf(X,Y, mu)
-	plt.clabel(CS, inline = 1, fontsize = 3)
-	CB = plt.colorbar(CS, shrink=0.8, extend='both')
+	CS = plt.colors.ListedColormap(['r', 'g', 'b', 'c'])
+	#CS = plt.contour(X,Y, mu)
+	#plt.clabel(CS, inline = 1, fontsize = 3)
+	#CB = plt.colorbar(CS, shrink=0.8, extend='both')
 	plt.yscale('log')
 	plt.xlabel(r'Spectral Index $n$')
 	plt.ylabel(r'Wimp mass in $GeV$')
-	plt.title(r'Contour of $\log_{10}(\mu)$')
-	plt.show()
-	
+	#plt.title(r'Contour of $\log_{10}(\mu)$')
+	plt.savefig("./results/contour_map_a.pdf")
+	#plt.show()
+
 	
 # Parser setup
-parser = argparse.ArgumentParser(description='Passing some arguments')
-
-parser.add_argument('-d','--print_density_squared_plot', 
-					help="Print plot", action='store_true')
-
-parser.add_argument('-m','--print_mu_to_n', 
-					help="Print plot of \mu type distortion for range of spectral index", 
-					action='store_true')
-
-parser.add_argument('-c','--print_contours_mu_to_n_mDM', 
-					help="Print contour maps of mu distortions as function of n and mDM", 
-					action='store_true')
-					
-parser.add_argument('-e','--print_energy_injection',nargs='+', 
-					help="Print energy injection plot for a WIMP with the given mass in GeV")
-parser.add_argument('-n','--spectral_index',nargs='+', 
-					help="Setting spectral index n")
-
-					
-args = parser.parse_args()	
 if __name__ == "__main__":
+	parser = argparse.ArgumentParser(description='Passing some arguments')
+	
+	parser.add_argument('-d','--print_density_squared_plot', 
+						help="Print plot", action='store_true')
+	
+	parser.add_argument('-m','--print_mu_to_n', 
+						help="Print plot of \mu type distortion for range of spectral index", 
+						action='store_true')
+	
+	parser.add_argument('-c','--print_contours_mu_to_n_mDM', 
+						help="Print contour maps of mu distortions as function of n and mDM", 
+						action='store_true')
+						
+	parser.add_argument('-e','--print_energy_injection',nargs='+', 
+						help="Print energy injection plot for a WIMP with the given mass in GeV")
+	parser.add_argument('-n','--spectral_index',nargs='+', 
+						help="Setting spectral index n")
+	
+						
+	args = parser.parse_args()	
+
 	main(args)

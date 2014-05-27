@@ -22,11 +22,13 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
+from model import Wimp_model
+
 def load_mssm_data(mssm_filename):
 	mssm = Read_pp_log_mssm_data("data/"+mssm_filename)
 	return mssm.data
 
-def produce_table(mssm_data, channels):	
+def produce_table(mssm_data, channels, spectral_index = 1., with_ucmh = False):	
 	final_SM_nu_e = ReadPPPC4DMID_data("data/AtProduction_neutrinos_e.dat")
 	final_SM_nu_mu = ReadPPPC4DMID_data("data/AtProduction_neutrinos_mu.dat")
 	final_SM_nu_tau = ReadPPPC4DMID_data("data/AtProduction_neutrinos_tau.dat")
@@ -63,7 +65,8 @@ def produce_table(mssm_data, channels):
 			nu_fractions[channel] = nu_energy / (2 * mass)
 			
 		f_gamma_for_mass = 	calc_f_gamma(row, nu_fractions)
-		mu_distortion_for_mass = mucalc.wimp_mucalc(mass, sigma_v , f_gamma_for_mass)
+		WIMP = Wimp_model(mass,f_gamma_for_mass,sigma_v)
+		mu_distortion_for_mass = mucalc.wimp_mucalc(WIMP,spectral_index,with_ucmh)
 		#print "mDM", mass, "f_gamma ",f_gamma_for_mass
 		f_gamma.append(f_gamma_for_mass)
 		mu.append(mu_distortion_for_mass)
@@ -102,20 +105,52 @@ def calc_f_gamma(row, nu_fractions):
 	return (1. - f_nu)
 	
 		
-def main():
+def main(args):
 	mssm_filename = "pp_log_mssm1_cdm_mup_CTA_sigmavXBR"
-	mssm_data = load_mssm_data(mssm_filename)
-	table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])
+	
+	n=1
+	if args.T_EW:
+		# Calculation for electroweak phase transition
+		print 'Setting phase transition to be in the EW scale'
+		mucalc.ucmh.T_phase_transition = mucalc.ucmh.T_EW
+		mucalc.ucmh.M_H_z_X = mucalc.ucmh.M_H(mucalc.ucmh.T_phase_transition.value)
+	if args.T_QCD:
+		# Calculation for QCD phase transition
+		print 'Setting phase transition to be in the QCD scale'
+		mucalc.ucmh.T_phase_transition = mucalc.ucmh.T_QCD
+		mucalc.ucmh.M_H_z_X = mucalc.ucmh.M_H(mucalc.ucmh.T_phase_transition.value)
+	
+	if args.spectral_index:
+		with_ucmh = True
+		n = args.spectral_index[0]
+		print 'Calculating for UCMHs with small-scale spectral index n=', n
+		mssm_data = load_mssm_data(mssm_filename)
+		table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'], float(n) , with_ucmh)
+	else:
+		mssm_data = load_mssm_data(mssm_filename)
+		table = produce_table(mssm_data,['Z','W','t','b','\[Gamma]'])		
 	#print table["multip","chisq","m_{\chi_1^0} (GeV)","f_gamma","\mu distortion"]
 	table.write("results/mu_f_gamma_with_"+mssm_filename+".txt", 
 	            format='ascii.fixed_width_no_header', delimiter=' ')
-	         #   format = "latex")	
+	         #   format = "latex")
+	
 
 
 # Parser setup
 parser = argparse.ArgumentParser(description='Process some integers.')
 
+parser.add_argument('-n','--spectral_index',nargs='+', 
+					help="Setting spectral index n")
+
+parser.add_argument('--T_EW', 
+					help="Calculate results for phase transitions at the electroweak scale", 
+					action='store_true')
+
+parser.add_argument('--T_QCD', 
+					help="Calculate results for phase transitions at the QCD", 
+					action='store_true')
+
 args = parser.parse_args()	
 if __name__ == "__main__":
-	main()
+	main(args)
 	
