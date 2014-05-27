@@ -259,7 +259,7 @@ def plot_energy_injection(model, spectral_index = 1., with_ucmh = False):
 
 def plot_mu_contours():
 	print "Processing things you know..",
-	import matplotlib
+	import matplotlib as mpl
 	import matplotlib.cm as cm
 	import matplotlib.mlab as mlab
 	matplotlib.rcParams['xtick.direction'] = 'out'
@@ -277,8 +277,9 @@ def plot_mu_contours():
 	X, Y = np.meshgrid(n_range, mDM_range)
 	mu = np.asarray(mu).reshape(100,100)
 	plt.figure()
-	CS = plt.contourf(X,Y, mu)
-	CS = plt.colors.ListedColormap(['r', 'g', 'b', 'c'])
+	
+	cmap = mpl.colors.ListedColormap(['w', 'c', 'b'])
+	CS = plt.contourf(X,Y, mu, cmap = cmap)
 	#CS = plt.contour(X,Y, mu)
 	#plt.clabel(CS, inline = 1, fontsize = 3)
 	#CB = plt.colorbar(CS, shrink=0.8, extend='both')
