@@ -262,24 +262,28 @@ def plot_mu_contours():
 	import matplotlib as mpl
 	import matplotlib.cm as cm
 	import matplotlib.mlab as mlab
-	matplotlib.rcParams['xtick.direction'] = 'out'
-	matplotlib.rcParams['ytick.direction'] = 'out'
-	n_range = np.linspace(1.,1.25,100)
-	mDM_range = np.logspace(1,6,100)
+	mpl.rcParams['xtick.direction'] = 'out'
+	mpl.rcParams['ytick.direction'] = 'out'
+	n_range = np.linspace(1.,1.25,5)
+	mDM_range = np.logspace(1,6,5)
 	X = n_range
 	Y = mDM_range
 	mu = []
 	for mDM in Y:
 		for n in X:
 			print ".",
-			#mu.append(np.log10(mu0_n_mDM(mDM,n)))
-			mu.append(mu_detection_levels(mDM, n))
+			mu.append(np.log10(mu0_n_mDM(mDM,n)))
+			#mu.append(mu_detection_levels(mDM, n))
 	X, Y = np.meshgrid(n_range, mDM_range)
-	mu = np.asarray(mu).reshape(100,100)
+	mu = np.asarray(mu).reshape(5,5)
 	plt.figure()
 	
 	cmap = mpl.colors.ListedColormap(['w', 'c', 'b'])
-	CS = plt.contourf(X,Y, mu, cmap = cmap)
+	#CS = plt.contourf(X,Y, mu, cmap = cmap)
+	levels = [np.log10(5e-8),np.log10(9e-5)]
+	CS = plt.contourf(X, Y, mu, levels,
+                        colors = ('w', 'c', 'b'),
+                        extend='both')
 	#CS = plt.contour(X,Y, mu)
 	#plt.clabel(CS, inline = 1, fontsize = 3)
 	#CB = plt.colorbar(CS, shrink=0.8, extend='both')
