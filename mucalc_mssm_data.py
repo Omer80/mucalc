@@ -44,6 +44,8 @@ def produce_table(mssm_data, channels, spectral_index = 1., with_ucmh = False):
 	for row in 	mssm_data:
 		mass = row["m_{\chi_1^0} (GeV)"]
 		sigma_v = row["<\sigma v> (cm^3 s^{-1})"]
+		log10_sigma_v = np.log10(row["<\sigma v> (cm^3 s^{-1})"])
+		row["<\sigma v> (cm^3 s^{-1})"] = log10_sigma_v
 		#print ".",
 
 		nu_fractions = {}
@@ -69,7 +71,7 @@ def produce_table(mssm_data, channels, spectral_index = 1., with_ucmh = False):
 		mu_distortion_for_mass = mucalc.wimp_mucalc(WIMP,spectral_index,with_ucmh)
 		#print "mDM", mass, "f_gamma ",f_gamma_for_mass
 		f_gamma.append(f_gamma_for_mass)
-		mu.append(mu_distortion_for_mass)
+		mu.append(np.log10(mu_distortion_for_mass))
 		i = i+1
 		progress_bar.update(i/column_length)
 			
@@ -79,6 +81,7 @@ def produce_table(mssm_data, channels, spectral_index = 1., with_ucmh = False):
 	mssm_data["\mu distortion"]	 = 	np.array(mu)
 	mssm_data["f_{\gamma}"].format = '%.19e'
 	mssm_data["\mu distortion"].format = '%.19e'
+	mssm_data["<\sigma v> (cm^3 s^{-1})"].format = '%.19e'
 	mssm_data.format = '%.19e'			
 	return mssm_data
 
