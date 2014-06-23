@@ -124,6 +124,15 @@ def mu_detection_levels(mDM, spectral_index):
 		detection_level = 2
 	return detection_level
 
+def WIMP_detection(WIMP):
+	mu = wimp_mucalc(WIMP)
+	detection_level = 0
+	if mu > 5e-8: # PIXIE level of detection
+		detection_level = 1
+	if mu > 9e-5: # COBE level of detection
+		detection_level = 2
+	return detection_level
+
 def main(args):
 	WIMP = Wimp_model(10.,1.,3.0e-27)
 	z = 2.e6
@@ -189,36 +198,7 @@ def plot_mu_to_spectral_index(model):
 	plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
 	plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
 	plt.grid(True, which="both")
-	#plt.figure(1)
-	#plt.yscale('log')
-	#plt.plot(n_range, mu_ee, 'b', lw=1, label = r"$e^+ e^-$ annihilation epoch ")
-	#plt.xlabel(r'$n$')
-	#plt.ylabel(r'$ | \mu |$')
-	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
-	#plt.legend(loc = 4)
-	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
-	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
-	##plt.grid(True, which="both")
-	#plt.figure(2)
-	#plt.yscale('log')
-	#plt.plot(n_range, mu_QCD, 'g', lw=1, label = r"QCD phase transition")
-	#plt.xlabel(r'$n$')
-	#plt.ylabel(r'$ | \mu |$')
-	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
-	#plt.legend(loc = 4)
-	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
-	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
-	##plt.grid(True, which="both")
-	#plt.figure(3)
-	#plt.yscale('log')
-	#plt.plot(n_range, mu_EW, 'm', lw=1, label = r"Electroweak phase transition")
-	#plt.xlabel(r'$n$')
-	#plt.ylabel(r'$ | \mu |$')
-	#plt.title(r'Change of $\mu$-type distortion as function of spectral index $n$')
-	#plt.legend(loc = 4)
-	#plt.axhline(y=9e-5, linewidth=2, ls='--',color='r',label="Limit from COBE observations")
-	#plt.axvline(x=1.25, linewidth=2, ls='--',color='r',label="Constraints from PBH")
-	##plt.grid(True, which="both")
+	
 	plt.show()
 		
 def plot_density_squared(model):
@@ -285,14 +265,16 @@ def plot_mu_contours():
                         colors = ('w', 'c', 'b'),
                         extend='both')
 	#CS = plt.contour(X,Y, mu)
+	proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_facecolor()[0]) for pc in CS.collections]
+	plt.legend(proxy, [r"$\mu < 5 \times 10^{-8}$", "Detectable by future experiments", "Detectable by COBE FIRAS"])
 	#plt.clabel(CS, inline = 1, fontsize = 3)
 	#CB = plt.colorbar(CS, shrink=0.8, extend='both')
 	plt.yscale('log')
 	plt.xlabel(r'Spectral Index $n$')
 	plt.ylabel(r'Wimp mass in $GeV$')
 	#plt.title(r'Contour of $\log_{10}(\mu)$')
-	plt.savefig("./results/contour_map_a.pdf")
-	#plt.show()
+	#plt.savefig("./results/contour_map_a.pdf")
+	plt.show()
 
 	
 # Parser setup

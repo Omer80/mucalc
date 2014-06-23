@@ -109,7 +109,7 @@ def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	colors = ['gold','red','green', 'lightskyblue']
 	explode = (0.1, 0,0,0)
 	patches, texts = plt.pie(sizes, explode = explode, colors=colors) 
-	plt.legend(patches, labels, loc = "best" )
+	#plt.legend(patches, labels, loc = "best" )
 	E_gamma_e = e_energy + gamma_energy
 	#plt.pie(sizes, explode=explode, labels=labels, colors=colors,
 	        #autopct='%1.1f%%', shadow=True)
@@ -117,15 +117,15 @@ def plot_channel(channel,percentages, mass, save_figures,detailed_plots):
 	plt.axis('equal')
 	plt.title(r'DM DM $\rightarrow$ $%s$ + $%s$'%(channel,channel),position=(0.5,1),bbox=dict(facecolor='0.8',), fontsize=30)
 	plt.text(-0.4,-0.76, r'$E_{\gamma + e} / E_{tot}$ = %.3f'%(E_gamma_e/total_energy)
-	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25) 
+	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=27) 
 	plt.text(-0.4,-0.98, r'$E_{p + d} / E_{\gamma + e}$ = %.3f'%(d_plus_p_energy/E_gamma_e)
-	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=25)  
+	         , bbox=dict(facecolor='white', alpha=0.5), fontsize=27)  
 	          
 	
 	
 	if detailed_plots:
 		plt.text(-0.4,-0.54, r'$E_{tot}$ = %.3f'%(total_energy)
-	             , bbox=dict(facecolor='white', alpha=0.5), fontsize=25)
+	             , bbox=dict(facecolor='white', alpha=0.5), fontsize=30)
 	plt.tight_layout()	
 	if save_figures:
 		plt.savefig("./figures/energy_distribution_for_channel_"+channel+".png")
